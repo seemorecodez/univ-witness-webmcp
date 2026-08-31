@@ -1,0 +1,164 @@
+{
+  "createdAt": "2026-08-31T22:43:56.773Z",
+  "enforcementGrade": "CLOSED_MANIFEST_PINNED_ARTIFACTS",
+  "evidenceClaims": {
+    "activelyObserved": "Both target executions terminated and returned the same bounded deterministic workload output.",
+    "buildPinned": "The edge uses statically imported compiled modules whose expected digests are verified by the repository build gate; no runtime module-byte hash is claimed there.",
+    "configuredAndEnforced": "Closed manifest, target, artifact, runtime-boundary, output-limit, and expiring handoff checks were enforced.",
+    "independentAttestation": {
+      "note": "No independent signer, hardware root of trust, or outside attester verified this deployment.",
+      "present": false
+    }
+  },
+  "evidenceDigest": "8ac90d9255b89d962383c4d32766350bd05a5d0c4336b13b793f19765844a630",
+  "evidenceId": "d014533e-c7ef-44ac-b96e-4297ca1317df",
+  "handoffDigest": "6a58e1c457a488fa92c0e6211f98453bd39ac2f05906297eeff61b07cd065183",
+  "handoffId": "89f38116-890a-4b13-be58-568c1b621652",
+  "manifestDigest": "8a11ef7f52f0b55455a5bd167d647f64ca1fad8a10ad71aa4cfb115a776575dc",
+  "manifestId": "portable-release-v1",
+  "portability": {
+    "actualTargetsExecuted": 2,
+    "portableAcrossExecutedTargets": true,
+    "sameComponent": true,
+    "sameManifest": true,
+    "sameWorkloadOutput": true,
+    "workloadOutputSha256": "a928646501fcc69ed8af413859d43d4b887f3be150c452696700e393d8e338f5"
+  },
+  "schemaVersion": "univ.deployment-receipt/v1",
+  "source": "WebMCP",
+  "targetReceipts": [
+    {
+      "artifactVerification": {
+        "allRuntimeDigestsMatched": true,
+        "binding": "sha256-before-instantiation",
+        "buildGate": "Public CI verifies source component and generated browser assets against diagnostic/manifest.json.",
+        "expectedCoreDigests": {
+          "univ-portable-workload.core.wasm": "ed7d4da018b95412204c27bac278d8ae1c8b97f70a9c181b6d70ff9a312608b3",
+          "univ-portable-workload.core2.wasm": "408f82de838034d97d89cd3855c41c48f7e3af6e096b5a4d24dfb5975e1900a5",
+          "univ-portable-workload.core3.wasm": "0df3129978bb49e53f8da9d7f2d92a9f836c374e3f92fc61c39c57b39a01f7a7"
+        },
+        "observedCoreDigests": {
+          "univ-portable-workload.core.wasm": "ed7d4da018b95412204c27bac278d8ae1c8b97f70a9c181b6d70ff9a312608b3",
+          "univ-portable-workload.core2.wasm": "408f82de838034d97d89cd3855c41c48f7e3af6e096b5a4d24dfb5975e1900a5",
+          "univ-portable-workload.core3.wasm": "0df3129978bb49e53f8da9d7f2d92a9f836c374e3f92fc61c39c57b39a01f7a7"
+        },
+        "runtimeSha256Observed": true
+      },
+      "componentId": "univ-portable-workload-v1",
+      "componentReported": {
+        "manifestId": "portable-release-v1",
+        "records": [
+          {
+            "id": "license",
+            "value": "MIT"
+          },
+          {
+            "id": "sbom",
+            "value": "sha256-pinned"
+          },
+          {
+            "id": "provenance",
+            "value": "commit-bound"
+          },
+          {
+            "id": "network",
+            "value": "not-required"
+          },
+          {
+            "id": "filesystem",
+            "value": "not-required"
+          }
+        ],
+        "schemaVersion": "univ.workload-result/v1",
+        "status": "HEALTHY",
+        "summary": "Portable release inventory rendered",
+        "workloadId": "release-inspector-v1"
+      },
+      "configuredAndEnforced": {
+        "environmentVariables": 0,
+        "filesystemPreopens": 0,
+        "guestNetwork": "disabled",
+        "outputCaptureLimitBytes": 4096
+      },
+      "environment": "browser main thread + WebAssembly",
+      "execution": "actual",
+      "handoffId": "89f38116-890a-4b13-be58-568c1b621652",
+      "hostObserved": {
+        "durationMs": 1106.2,
+        "stdoutCapturedBytes": 389,
+        "stdoutTruncated": false,
+        "stdoutWrittenBytes": 389,
+        "termination": "completed",
+        "timingSource": "performance.now",
+        "workloadOutputSha256": "a928646501fcc69ed8af413859d43d4b887f3be150c452696700e393d8e338f5"
+      },
+      "manifestId": "portable-release-v1",
+      "schemaVersion": "univ.target-receipt/v1",
+      "targetId": "browser-wasi"
+    },
+    {
+      "artifactVerification": {
+        "binding": "static-compiled-module-import",
+        "buildGate": "CI pins generated core assets to diagnostic/manifest.json; the edge runtime receives static WebAssembly.Module bindings and does not expose their bytes for runtime re-hashing.",
+        "expectedCoreDigests": {
+          "univ-portable-workload.core.wasm": "ed7d4da018b95412204c27bac278d8ae1c8b97f70a9c181b6d70ff9a312608b3",
+          "univ-portable-workload.core2.wasm": "408f82de838034d97d89cd3855c41c48f7e3af6e096b5a4d24dfb5975e1900a5",
+          "univ-portable-workload.core3.wasm": "0df3129978bb49e53f8da9d7f2d92a9f836c374e3f92fc61c39c57b39a01f7a7"
+        },
+        "runtimeSha256Observed": false
+      },
+      "componentId": "univ-portable-workload-v1",
+      "componentReported": {
+        "manifestId": "portable-release-v1",
+        "records": [
+          {
+            "id": "license",
+            "value": "MIT"
+          },
+          {
+            "id": "sbom",
+            "value": "sha256-pinned"
+          },
+          {
+            "id": "provenance",
+            "value": "commit-bound"
+          },
+          {
+            "id": "network",
+            "value": "not-required"
+          },
+          {
+            "id": "filesystem",
+            "value": "not-required"
+          }
+        ],
+        "schemaVersion": "univ.workload-result/v1",
+        "status": "HEALTHY",
+        "summary": "Portable release inventory rendered",
+        "workloadId": "release-inspector-v1"
+      },
+      "configuredAndEnforced": {
+        "environmentVariables": 0,
+        "filesystemPreopens": 0,
+        "guestNetwork": "disabled",
+        "outputCaptureLimitBytes": 4096
+      },
+      "environment": "OpenAI Sites / Cloudflare Workers edge",
+      "execution": "actual",
+      "handoffId": "89f38116-890a-4b13-be58-568c1b621652",
+      "hostObserved": {
+        "durationMs": 0,
+        "stdoutCapturedBytes": 389,
+        "stdoutTruncated": false,
+        "stdoutWrittenBytes": 389,
+        "termination": "completed",
+        "timingNote": "The Workers clock may remain at zero during an invocation; termination and output are observed, but sub-millisecond elapsed time is not claimed.",
+        "timingSource": "performance.now",
+        "workloadOutputSha256": "a928646501fcc69ed8af413859d43d4b887f3be150c452696700e393d8e338f5"
+      },
+      "manifestId": "portable-release-v1",
+      "schemaVersion": "univ.target-receipt/v1",
+      "targetId": "sites-edge-wasi"
+    }
+  ]
+}
