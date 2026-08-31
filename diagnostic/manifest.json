@@ -1,8 +1,9 @@
 {
-  "schemaVersion": "witness.component-manifest/v1",
-  "componentId": "release-policy-diagnostic-v1",
-  "sourceArtifact": "component/witness-release-diagnostic.wasm",
-  "sourceComponentSha256": "47fc22cb14f99059f8b234929971388f7cebe8fb2a415862ceb2904be76da9d9",
+  "schemaVersion": "univ.component-manifest/v1",
+  "componentId": "univ-portable-workload-v1",
+  "workloadId": "release-inspector-v1",
+  "sourceArtifact": "component/univ-portable-workload.wasm",
+  "sourceComponentSha256": "99f1b53ecb4a3400d802dea49e733b2409d4b9c65c770645d2f54c8dac3cacb0",
   "sourceBuild": {
     "rustc": "1.96.0 (ac68faa20 2026-05-25)",
     "target": "wasm32-wasip2",
@@ -10,13 +11,17 @@
     "bitReproducibleAcrossHosts": false
   },
   "transpiler": "@bytecodealliance/jco@1.17.9",
-  "profiles": [
-    "approved-release-v1",
-    "blocked-release-v1"
+  "deploymentManifests": [
+    "portable-release-v1",
+    "network-bound-release-v1"
+  ],
+  "actualTargets": [
+    "browser-wasi",
+    "sites-edge-wasi"
   ],
   "coreModules": {
-    "witness-release-diagnostic.core.wasm": "d68feaf63019279c72af748a29527c74ac7a44023bea812a1e880712bcc5203c",
-    "witness-release-diagnostic.core2.wasm": "408f82de838034d97d89cd3855c41c48f7e3af6e096b5a4d24dfb5975e1900a5",
-    "witness-release-diagnostic.core3.wasm": "0df3129978bb49e53f8da9d7f2d92a9f836c374e3f92fc61c39c57b39a01f7a7"
+    "univ-portable-workload.core.wasm": "ed7d4da018b95412204c27bac278d8ae1c8b97f70a9c181b6d70ff9a312608b3",
+    "univ-portable-workload.core2.wasm": "408f82de838034d97d89cd3855c41c48f7e3af6e096b5a4d24dfb5975e1900a5",
+    "univ-portable-workload.core3.wasm": "0df3129978bb49e53f8da9d7f2d92a9f836c374e3f92fc61c39c57b39a01f7a7"
   }
 }

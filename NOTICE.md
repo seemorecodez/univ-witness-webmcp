@@ -1,6 +1,6 @@
 # Notice
 
-UNIV Witness is maintained by SeemoreCodez.
+UNIV Deploy is maintained by SeemoreCodez.
 
 ## Copyright
 

@@ -1,44 +1,107 @@
 # Architecture and evidence boundary
 
-UNIV Witness exposes four page-defined WebMCP tools. They accept only two included
-profile IDs and never accept executable bytes, paths, URLs, shell text, container
-images, or host configuration.
+UNIV Deploy demonstrates a narrow universal-deployment primitive: a closed
+manifest can be planned once, handed off under fixed constraints, executed on two
+different WASI hosts, and compared from their actual target receipts.
 
 ```text
-browser agent
-    │ WebMCP: capabilities / plan / run / evidence
-    ▼
-closed TypeScript service
-    │ profile enum + SHA-256 gate
-    ▼
-included WASI Preview 2 diagnostic
-    │ empty env + zero preopens + guest network disabled
-    ▼
-bounded stdout → session-local receipt
+browser agent or human control
+              │
+              │ closed manifest ID
+              ▼
+       deterministic planner
+              │ PERMIT / BLOCK
+              ▼
+ expiring integrity-bound handoff
+       ┌──────┴─────────┐
+       ▼                ▼
+ browser-wasi      sites-edge-wasi
+ runtime SHA-256   static compiled modules
+ before compile    pinned by manifest + CI
+       │                │
+       └──────┬─────────┘
+              ▼
+  output equality + portability receipt
 ```
 
-## Executable identity
+## Manifest and policy model
 
-The committed WASI component and every jco-produced core module are listed in
-`diagnostic/manifest.json`. The browser hashes each core module before compilation
-and refuses a mismatch. CI compiles and tests the Rust source, then independently
-retranspiles the exact committed component with pinned
-`@bytecodealliance/jco@1.17.9` and compares the resulting executable digests. The
-manifest records that the Rust compiler output is not claimed to be bit-reproducible
-across host operating systems.
+`portable-release-v1` is the only executable manifest. It binds:
+
+- component `univ-portable-workload-v1`;
+- workload `release-inspector-v1`;
+- source-component and generated-core SHA-256 digests;
+- exactly `browser-wasi` and `sites-edge-wasi`;
+- one-shot execution, zero filesystem preopens, empty guest environment, disabled
+  guest networking, and a 4,096-byte stdout capture ceiling;
+- refusal of arbitrary code, arguments, URLs, and bytes.
+
+`network-bound-release-v1` is a planning negative control, not a second diagnostic
+profile. It requires guest networking, so planning blocks it before handoff.
+
+## Controlled handoff
+
+The handoff fixes the manifest digest, source and core digests, target set,
+constraints, creation time, and five-minute expiry. Its SHA-256 digest covers the
+canonicalized envelope. Each target validates the contract, known manifest,
+target membership, expiry, constraints, and digest before running.
+
+This protects against accidental or unobserved envelope mutation inside the demo.
+It does **not** authenticate the caller, authorize an identity, provide a digital
+signature, or constitute independent attestation.
+
+## Target execution
+
+### `browser-wasi`
+
+The browser fetches the three included core modules from the same origin, computes
+their SHA-256 digests with Web Crypto, compares them to the manifest, and only then
+calls `WebAssembly.compile`. The receipt may truthfully state that runtime module
+hashes were observed.
+
+### `sites-edge-wasi`
+
+OpenAI Sites runs on Cloudflare Workers. Workers accept statically bound
+`WebAssembly.Module` imports but disallow runtime Wasm code generation. The build
+therefore imports the three compiled modules with `?module`; the public CI gate
+pins their source files to `diagnostic/manifest.json`.
+
+The edge runtime does not expose the original compiled-module bytes for hashing.
+Its receipt therefore says `runtimeSha256Observed: false` and describes a
+build-pinned static binding. It never re-labels expected digests as observed facts.
+
+Both hosts instantiate the same generated component adapter with the Preview 2
+shim, empty environment, zero preopens, disabled guest network, and bounded output
+capture. Edge executions are serialized inside each isolate because the shim's
+stdout binding is module-global.
+
+## Portability verdict
+
+A deployment is marked portable only after both target receipts report actual
+completion and the host compares:
+
+- manifest ID;
+- component ID;
+- deterministic component output; and
+- SHA-256 of the exact captured output.
+
+The receipt records two actual targets. Merely modeling a target or producing a
+plan is never counted as portability evidence.
 
 ## Claim taxonomy
 
-- **Configured and enforced by this host:** closed profile allowlist, exact SHA-256
-  module gate, zero filesystem preopens, empty guest environment, disabled guest
-  networking, and a 4,096-byte stdout capture ceiling.
-- **Actively observed by this host:** hashes of bytes actually loaded, component
-  termination, duration, and captured/written byte counts.
-- **Component-reported:** the five release-policy check results and PASS/BLOCK
-  verdict emitted by the included diagnostic.
-- **Independent attestation:** absent. No external signer, TEE, or remote verifier
-  attests to the browser host, runtime, candidate facts, or receipt.
+- **Configured and enforced:** closed manifests/targets, pinned artifacts, handoff
+  validation and expiry, zero preopens/env, disabled guest network, bounded output.
+- **Actively observed:** both terminations, durations, byte counts, output hashes,
+  and the browser's loaded-module hashes.
+- **Build-pinned:** the edge's static module inputs as checked by the public CI gate.
+- **Component-reported:** deterministic workload status and inventory records.
+- **Independent attestation:** absent.
 
-The Bytecode Alliance preview2 shim describes browser support as experimental. This
-submission is a bounded hackathon demonstration, not a claim that the browser shim
-is production-ready isolation.
+## Deliberately excluded
+
+The service exposes no daemon, worker, native, OCI, upload, shell, QEMU, arbitrary
+URL, arbitrary byte, or user-supplied component path. OCI remains outside the
+public design until the inherited Docker-client environment separation is fixed.
+QEMU remains outside until its implementation and explicit ignored-test gate are
+repaired. Those exclusions are product boundaries, not hidden capabilities.

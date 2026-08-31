@@ -1,52 +1,28 @@
 # Production evidence
 
-Verified on 2026-08-31 against
-<https://univ-witness-proof.seemoreas0-0.chatgpt.site>.
+The previous diagnostic-only screenshots and receipt were removed when the entry
+became UNIV Deploy. They remain recoverable from Git history and are not presented
+as evidence for the current architecture.
 
-## External URL proof
+## Verified local production path
 
-- Page: HTTP 200, title `UNIV Witness — WebMCP WASI release diagnostics`
-- Main WASI module: HTTP 200, 61,026 bytes
-- Observed SHA-256:
-  `d68feaf63019279c72af748a29527c74ac7a44023bea812a1e880712bcc5203c`
-- Browser console warnings/errors after the final run: none
+On 2026-08-31, the built application ran under the local OpenAI Sites/Cloudflare
+Workers production runtime. The Codex in-app browser discovered the five page-defined
+tools and invoked the complete flow through WebMCP:
 
-## Real agent-originated session
+1. `plan_univ_deployment` returned `PERMIT` for `portable-release-v1`.
+2. `create_deployment_handoff` created handoff
+   `08205752-8413-4f00-ba91-06a65f50d1ef`.
+3. `deploy_univ_manifest` executed `browser-wasi` and `sites-edge-wasi`.
+4. Both targets returned output SHA-256
+   `a928646501fcc69ed8af413859d43d4b887f3be150c452696700e393d8e338f5`.
+5. Deployment receipt `e3a5aa99-e96a-4f81-beac-3202637e16fa` recorded source
+   `WebMCP`, two actual targets, and `portableAcrossExecutedTargets: true`.
 
-The Codex in-app browser discovered the four page-defined tools from the deployed
-origin and called `run_release_diagnostic` through its WebMCP capability with
-`approved-release-v1`.
+The blocked manifest was also called through WebMCP and returned `BLOCK` before
+handoff because guest networking is disabled on every exposed target.
 
-- Evidence ID: `51ea6d1b28d6e128ec3dd4c23e364932`
-- Evidence digest:
-  `00e2709998068f55c8c44a5c9e3ad62e56705df637d5cf3fd53512f56af72903`
-- Source: `WebMCP`
-- Verdict: `PASS`
-- Core digests matched: `true`
-- Deterministic stdout: 434 bytes, not truncated
-
-The exact returned object is in [production-webmcp-receipt.json](production-webmcp-receipt.json).
-The ID is session-local by design and is not a remotely attested identifier.
-
-## Required submission CI
-
-- Implementation commit: `a3a5e58514dd1a4e829a924be091219405813183`
-- Public run: [Witness required gate 33439924214](https://github.com/seemorecodez/univ-witness-webmcp/actions/runs/33439924214), succeeded
-- Branch protection: strict required context `Witness required gate`
-- Force pushes and branch deletion: disabled
-- Administrator enforcement: disabled so the solo maintainer can push a commit that
-  creates its own status; pull requests cannot merge without the required context
-
-The inherited UNIV repository's unrelated cross-platform jobs remain historical
-failures and are not represented as this submission's passing gate.
-
-## Viewport screenshots
-
-1. [Overview](screenshots/01-overview.png) — audience, workflow, closed profiles,
-   and pre-execution boundaries.
-2. [Agent PASS receipt](screenshots/02-webmcp-pass.png) — `via WebMCP`, deterministic
-   5/5 output, and agent activity timeline.
-3. [Agent negative control](screenshots/03-webmcp-negative-control.png) — selected
-   blocked profile, deterministic BLOCK result, and `via WebMCP` timeline.
-4. [Evidence JSON](screenshots/04-evidence-json.png) — exact receipt payload,
-   configured boundary, and explicit absence of independent attestation.
+The IDs are session-local, and none of this is represented as independent
+attestation. Public deployment evidence, the exact public receipt, CI run, and four
+new viewport screenshots are added here only after they are re-observed against the
+updated public URL.

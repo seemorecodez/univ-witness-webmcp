@@ -1,4 +1,4 @@
-name: Witness required gate
+name: UNIV Deploy required gate
 
 on:
   push:
@@ -10,12 +10,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: witness-${{ github.ref }}
+  group: univ-deploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  witness-required-gate:
-    name: Witness required gate
+  univ-deploy-required-gate:
+    name: UNIV Deploy required gate
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -28,21 +28,21 @@ jobs:
         run: npm ci
       - name: Install WASI Preview 2 target
         run: rustup target add wasm32-wasip2
-      - name: Test diagnostic policy
+      - name: Test portable workload policy
         run: cargo test --manifest-path diagnostic/Cargo.toml
-      - name: Compile diagnostic source
+      - name: Compile portable workload source
         run: npm run build:diagnostic
       - name: Reproduce browser modules from pinned component
         run: >-
           npx --yes --package @bytecodealliance/jco@1.17.9 jco transpile
-          diagnostic/component/witness-release-diagnostic.wasm
-          -o "$RUNNER_TEMP/witness-generated"
-          --name witness-release-diagnostic
+          diagnostic/component/univ-portable-workload.wasm
+          -o "$RUNNER_TEMP/univ-deploy-generated"
+          --name univ-portable-workload
           --instantiation async
           --no-typescript
           --no-nodejs-compat
       - name: Verify executable set and evidence boundary
-        run: node scripts/verify-witness.mjs --generated-dir "$RUNNER_TEMP/witness-generated"
+        run: node scripts/verify-deployment.mjs --generated-dir "$RUNNER_TEMP/univ-deploy-generated"
       - name: Lint
         run: npm run lint
       - name: Build deployable site

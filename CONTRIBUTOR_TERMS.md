@@ -1,6 +1,6 @@
 # Contributor Terms
 
-These terms apply to contributions submitted to UNIV Witness. They are operational project terms, not legal advice.
+These terms apply to contributions submitted to UNIV Deploy. They are operational project terms, not legal advice.
 
 ## Inbound License
 

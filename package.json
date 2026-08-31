@@ -1,6 +1,6 @@
 {
-  "name": "univ-witness-webmcp",
-  "version": "0.1.0",
+  "name": "univ-deploy-webmcp",
+  "version": "0.2.0",
   "private": true,
   "license": "MIT",
   "engines": {
@@ -12,9 +12,9 @@
     "build:diagnostic": "cargo build --manifest-path diagnostic/Cargo.toml --target wasm32-wasip2 --release",
     "check": "npm run verify && npm run lint && npm run build",
     "start": "wrangler dev --config dist/server/wrangler.json",
-    "lint": "oxlint app/page.tsx app/lib/witness.ts app/types/webmcp.d.ts vite.config.ts",
+    "lint": "oxlint app/page.tsx app/lib/deployment-contract.ts app/lib/deployment.ts app/lib/wasi-runtime.ts app/api/targets/sites-edge-wasi/route.ts app/types/webmcp.d.ts app/types/wasm.d.ts vite.config.ts",
     "format": "oxfmt",
-    "verify": "node scripts/verify-witness.mjs"
+    "verify": "node scripts/verify-deployment.mjs"
   },
   "dependencies": {
     "@bytecodealliance/preview2-shim": "0.23.0",

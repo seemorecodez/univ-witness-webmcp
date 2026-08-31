@@ -1,6 +1,6 @@
 # Authors And Contributors
 
-UNIV Witness is created and maintained by SeemoreCodez.
+UNIV Deploy is created and maintained by SeemoreCodez.
 
 ## Founder
 

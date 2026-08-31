@@ -1,6 +1,6 @@
 # Licensing And Commercial Model
 
-UNIV Witness uses the SeemoreCodez founder-led MIT open-core model.
+UNIV Deploy uses the SeemoreCodez founder-led MIT open-core model.
 
 ## Public Core
 

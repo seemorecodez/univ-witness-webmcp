@@ -1,6 +1,6 @@
 # Contributor Upside Program
 
-This document describes a potential SeemoreCodez contributor recognition and upside program for UNIV Witness. It is not part of the MIT License.
+This document describes a potential SeemoreCodez contributor recognition and upside program for UNIV Deploy. It is not part of the MIT License.
 
 This document is not a public securities offering, not an employment offer, not a partnership offer, not a guarantee of payment, and not legal, tax, investment, or financial advice. No rights exist unless SeemoreCodez and the contributor sign a separate written agreement.
 

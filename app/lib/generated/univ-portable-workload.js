@@ -3365,9 +3365,9 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 
 if (!getCoreModule) getCoreModule = (name) => fetchCompile(new URL(`./${name}`, import.meta.url));
-const module0 = getCoreModule('witness-release-diagnostic.core.wasm');
-const module1 = getCoreModule('witness-release-diagnostic.core2.wasm');
-const module2 = getCoreModule('witness-release-diagnostic.core3.wasm');
+const module0 = getCoreModule('univ-portable-workload.core.wasm');
+const module1 = getCoreModule('univ-portable-workload.core2.wasm');
+const module2 = getCoreModule('univ-portable-workload.core3.wasm');
 
 const { getArguments, getEnvironment } = imports['wasi:cli/environment'];
 

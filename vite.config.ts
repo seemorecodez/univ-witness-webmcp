@@ -2,12 +2,15 @@ import { sites } from '@openai/sites-vite-plugin';
 import tailwindcss from '@tailwindcss/postcss';
 import vinext from 'vinext';
 import { defineConfig } from 'vite';
+import { fileURLToPath } from 'node:url';
 import hostingConfig from './.openai/hosting.json' with { type: 'json' };
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   '00000000-0000-4000-8000-000000000000';
 
 const { d1, r2 } = hostingConfig;
+const preview2Browser = (moduleName: string) =>
+  fileURLToPath(new URL(`./node_modules/@bytecodealliance/preview2-shim/dist/browser/${moduleName}.js`, import.meta.url));
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === 'seatbelt';
@@ -46,6 +49,13 @@ export default defineConfig(async () => {
 
   return {
     css: { postcss: { plugins: [tailwindcss()] } },
+    resolve: {
+      alias: [
+        { find: /^@bytecodealliance\/preview2-shim$/, replacement: preview2Browser('index') },
+        { find: /^@bytecodealliance\/preview2-shim\/cli$/, replacement: preview2Browser('cli') },
+        { find: /^@bytecodealliance\/preview2-shim\/filesystem$/, replacement: preview2Browser('filesystem') },
+      ],
+    },
     server: isCodexSeatbeltSandbox
       ? { watch: { useFsEvents: false, usePolling: true } }
       : undefined,

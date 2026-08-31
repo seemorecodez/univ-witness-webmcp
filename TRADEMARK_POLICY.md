@@ -1,12 +1,12 @@
 # Trademark Policy
 
-This policy protects the official identity of UNIV Witness and SeemoreCodez.
+This policy protects the official identity of UNIV Deploy and SeemoreCodez.
 
 ## Marks
 
 Project marks may include:
 
-- The name `UNIV Witness`
+- The name `UNIV Deploy`
 - The slug `univ-witness-webmcp`
 - SeemoreCodez
 - Logos, icons, badges, slogans, domains, social handles, package names, and official visual identity
@@ -42,7 +42,7 @@ Forks are allowed under the MIT License, but unofficial forks must make their un
 
 Suggested wording:
 
-> This is an unofficial fork of UNIV Witness. It is not endorsed by or affiliated with SeemoreCodez.
+> This is an unofficial fork of UNIV Deploy. It is not endorsed by or affiliated with SeemoreCodez.
 
 ## Permission
 

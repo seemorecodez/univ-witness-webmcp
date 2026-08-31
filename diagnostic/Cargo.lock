@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "witness-release-diagnostic"
+name = "univ-portable-workload"
 version = "0.1.0"

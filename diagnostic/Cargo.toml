@@ -1,5 +1,5 @@
 [package]
-name = "witness-release-diagnostic"
+name = "univ-portable-workload"
 version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0"
@@ -11,4 +11,3 @@ lto = true
 opt-level = "s"
 panic = "abort"
 strip = true
-

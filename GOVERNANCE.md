@@ -1,6 +1,6 @@
 # Governance
 
-UNIV Witness is a founder-led open-source project maintained by SeemoreCodez.
+UNIV Deploy is a founder-led open-source project maintained by SeemoreCodez.
 
 ## Founder Steward
 

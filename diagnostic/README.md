@@ -1,12 +1,14 @@
-# Included WASI diagnostic
+# Included portable WASI workload
 
-`witness-release-diagnostic` is the only executable component exposed by the public demo.
-It accepts one closed, included profile ID and prints a deterministic JSON release-policy
-report. It has no upload, shell, native, OCI, worker, daemon, or QEMU path.
+`univ-portable-workload` is the only executable component exposed by the public demo.
+It accepts only `portable-release-v1` and prints a deterministic release-inventory
+result. `network-bound-release-v1` and arbitrary references are refused by the
+component as defense in depth. There is no upload, shell, native, OCI, worker,
+daemon, or QEMU path.
 
-The browser verifies every transpiled core module's SHA-256 digest before instantiation.
-The committed source component is separately digest-pinned and its build provenance is
-recorded in `manifest.json`; cross-host Rust builds are not claimed to be byte-identical.
-Runtime imports are configured with zero filesystem preopens, an empty environment, and
-network disabled. Those are host-enforced configuration claims, not independent
-attestation.
+The browser verifies every generated module's SHA-256 digest before compilation. The
+OpenAI Sites edge imports the same generated modules statically because Workers
+disallow runtime Wasm compilation; CI pins those files to `manifest.json`. Cross-host
+Rust builds are not claimed to be byte-identical. Both runtime imports use zero
+filesystem preopens, an empty environment, and disabled guest networking. Those are
+configured or observed claims, not independent attestation.
