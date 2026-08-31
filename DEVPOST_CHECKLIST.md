@@ -9,7 +9,7 @@
 - [x] Honest separation of configured enforcement, observations, component reports, and absent independent attestation.
 - [x] Zero known npm vulnerabilities at the 2026-08-31 validation checkpoint.
 - [x] Public repository URL added to README: <https://github.com/seemorecodez/univ-witness-webmcp>.
-- [ ] Public OpenAI Sites deployment verified in a fresh browser session.
+- [x] Public OpenAI Sites deployment returns HTTP 200 and exact WASI digest: <https://univ-witness-proof.seemoreas0-0.chatgpt.site>.
 - [ ] Public GitHub `Witness required gate` completes green and is configured as the required branch check when account settings permit.
 - [ ] Four final viewport screenshots captured from the deployed URL.
 - [ ] Public YouTube demo under three minutes with audio.

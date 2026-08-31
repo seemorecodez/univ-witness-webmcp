@@ -74,9 +74,10 @@ safe for public judging.
 
 ## Test it without rebuilding
 
-The public OpenAI Sites URL is added here immediately after the first verified
-deployment. Until then, `npm ci && npm run dev` is the exact local judge path; no
-credentials are required.
+Public demo: <https://univ-witness-proof.seemoreas0-0.chatgpt.site>
+
+It requires no credentials. A WebMCP-capable agent can call the four page-defined
+tools directly; other modern browsers can use the human controls.
 
 Public source: <https://github.com/seemorecodez/univ-witness-webmcp>
 

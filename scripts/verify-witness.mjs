@@ -39,6 +39,7 @@ const generated = await readFile(join(root, 'app', 'lib', 'generated', 'witness-
 const exactFraming = 'Release and security teams can let browser agents run only pre-approved diagnostics and return reviewable execution receipts without granting arbitrary code execution.';
 
 assert(page.includes(exactFraming), 'required user and workflow framing is missing');
+assert(page.includes('https://github.com/seemorecodez/univ-witness-webmcp'), 'clean public source link is missing');
 assert(page.includes('via WebMCP'), 'visible WebMCP provenance label is missing');
 assert(page.includes('Independent attestation'), 'attestation caveat is missing');
 assert(page.includes("'get_univ_capabilities'"), 'capabilities tool missing');

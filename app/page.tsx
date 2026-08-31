@@ -167,7 +167,7 @@ export default function Home() {
               <span className="status-dot" />
               {webMcpStatus === 'ready' ? '4 WebMCP tools ready' : webMcpStatus === 'checking' ? 'Checking WebMCP' : webMcpStatus === 'failed' ? 'WebMCP registration failed' : 'Human fallback mode'}
             </span>
-            <a className="hidden text-xs text-white/55 transition hover:text-white sm:block" href="https://github.com/seemorecodez/univ-witness" target="_blank" rel="noreferrer">Public source ↗</a>
+            <a className="hidden text-xs text-white/55 transition hover:text-white sm:block" href="https://github.com/seemorecodez/univ-witness-webmcp" target="_blank" rel="noreferrer">Public source ↗</a>
           </div>
         </div>
       </header>
