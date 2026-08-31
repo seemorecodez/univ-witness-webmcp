@@ -81,6 +81,9 @@ tools directly; other modern browsers can use the human controls.
 
 Public source: <https://github.com/seemorecodez/univ-witness-webmcp>
 
+Reproducible production proof and four viewport captures are in
+[evidence/](evidence/README.md).
+
 ## Validation
 
 ```bash

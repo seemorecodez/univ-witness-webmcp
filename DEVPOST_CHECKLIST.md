@@ -11,7 +11,7 @@
 - [x] Public repository URL added to README: <https://github.com/seemorecodez/univ-witness-webmcp>.
 - [x] Public OpenAI Sites deployment returns HTTP 200 and exact WASI digest: <https://univ-witness-proof.seemoreas0-0.chatgpt.site>.
 - [ ] Public GitHub `Witness required gate` completes green and is configured as the required branch check when account settings permit.
-- [ ] Four final viewport screenshots captured from the deployed URL.
+- [x] Four final viewport screenshots captured from the deployed URL in `evidence/screenshots/`.
 - [ ] Public YouTube demo under three minutes with audio.
 - [ ] Exact Codex/GPT-5.6 provenance confirmed from task metadata.
 - [ ] Real `/feedback` Session ID entered in Devpost.
