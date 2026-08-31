@@ -1,5 +1,7 @@
 # UNIV Witness
 
+[![Witness required gate](https://github.com/seemorecodez/univ-witness-webmcp/actions/workflows/witness-ci.yml/badge.svg)](https://github.com/seemorecodez/univ-witness-webmcp/actions/workflows/witness-ci.yml)
+
 UNIV Witness is a WebMCP demonstration for release and security teams: browser
 agents can run only pre-approved WASI diagnostics and receive reviewable execution
 receipts without being granted arbitrary code execution.
@@ -76,6 +78,8 @@ The public OpenAI Sites URL is added here immediately after the first verified
 deployment. Until then, `npm ci && npm run dev` is the exact local judge path; no
 credentials are required.
 
+Public source: <https://github.com/seemorecodez/univ-witness-webmcp>
+
 ## Validation
 
 ```bash
@@ -141,4 +145,3 @@ submission-specific signal.
 
 MIT © SeemoreCodez. See [LICENSE](LICENSE) and
 [README-LICENSING.md](README-LICENSING.md).
-
