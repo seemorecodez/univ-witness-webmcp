@@ -62,7 +62,11 @@ export default function Home() {
     addTimeline(operation, source, 'STARTED');
     try {
       const value = await task();
-      if ('componentId' in value) setResult(value as Result);
+      if ('componentId' in value) {
+        const nextResult = value as Result;
+        setResult(nextResult);
+        setProfileId(nextResult.profileId);
+      }
       addTimeline(operation, source, 'COMPLETE');
       return value;
     } catch (caught) {
