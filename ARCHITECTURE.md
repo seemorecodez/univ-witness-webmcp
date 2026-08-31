@@ -19,10 +19,13 @@ bounded stdout → session-local receipt
 
 ## Executable identity
 
-The source WASI component and every jco-produced core module are listed in
+The committed WASI component and every jco-produced core module are listed in
 `diagnostic/manifest.json`. The browser hashes each core module before compilation
-and refuses a mismatch. CI rebuilds the Rust component, retranspiles it with pinned
-`@bytecodealliance/jco@1.17.9`, and compares the resulting executable digests.
+and refuses a mismatch. CI compiles and tests the Rust source, then independently
+retranspiles the exact committed component with pinned
+`@bytecodealliance/jco@1.17.9` and compares the resulting executable digests. The
+manifest records that the Rust compiler output is not claimed to be bit-reproducible
+across host operating systems.
 
 ## Claim taxonomy
 
@@ -39,4 +42,3 @@ and refuses a mismatch. CI rebuilds the Rust component, retranspiles it with pin
 The Bytecode Alliance preview2 shim describes browser support as experimental. This
 submission is a bounded hackathon demonstration, not a claim that the browser shim
 is production-ready isolation.
-

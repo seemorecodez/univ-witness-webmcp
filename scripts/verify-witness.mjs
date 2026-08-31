@@ -30,7 +30,7 @@ await verifyCoreDirectory(join(root, 'public', 'wasm'), 'public runtime assets')
 await verifyCoreDirectory(join(root, 'app', 'lib', 'generated'), 'checked-in transpilation');
 if (regeneratedDir) await verifyCoreDirectory(regeneratedDir, 'fresh jco transpilation');
 
-const sourceComponent = join(root, 'diagnostic', 'target', 'wasm32-wasip2', 'release', 'witness-release-diagnostic.wasm');
+const sourceComponent = join(root, 'diagnostic', 'component', 'witness-release-diagnostic.wasm');
 assert(await sha256(sourceComponent) === manifest.sourceComponentSha256, 'source component digest mismatch');
 
 const page = await readFile(join(root, 'app', 'page.tsx'), 'utf8');

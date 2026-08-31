@@ -97,9 +97,11 @@ npm audit --omit=dev --audit-level=high
 npm audit --audit-level=high
 ```
 
-`Witness required gate` repeats the same checks in public GitHub Actions and
-retranspiles the component with pinned `@bytecodealliance/jco@1.17.9` to prove the
-checked-in executable digests are reproducible.
+`Witness required gate` compiles and tests the Rust source in public GitHub Actions.
+Separately, it verifies the committed component digest and retranspiles that exact
+artifact with pinned `@bytecodealliance/jco@1.17.9` to prove the checked-in browser
+module digests are reproducible. Rust output is not claimed to be bit-reproducible
+across Windows and Ubuntu; the manifest records the component's build provenance.
 
 ## Evidence language
 

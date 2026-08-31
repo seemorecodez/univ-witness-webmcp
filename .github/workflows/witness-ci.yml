@@ -30,12 +30,12 @@ jobs:
         run: rustup target add wasm32-wasip2
       - name: Test diagnostic policy
         run: cargo test --manifest-path diagnostic/Cargo.toml
-      - name: Build source component
+      - name: Compile diagnostic source
         run: npm run build:diagnostic
-      - name: Reproduce browser modules with pinned jco
+      - name: Reproduce browser modules from pinned component
         run: >-
           npx --yes --package @bytecodealliance/jco@1.17.9 jco transpile
-          diagnostic/target/wasm32-wasip2/release/witness-release-diagnostic.wasm
+          diagnostic/component/witness-release-diagnostic.wasm
           -o "$RUNNER_TEMP/witness-generated"
           --name witness-release-diagnostic
           --instantiation async
@@ -51,4 +51,3 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - name: Audit complete dependency tree
         run: npm audit --audit-level=high
-

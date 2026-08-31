@@ -1,7 +1,14 @@
 {
   "schemaVersion": "witness.component-manifest/v1",
   "componentId": "release-policy-diagnostic-v1",
+  "sourceArtifact": "component/witness-release-diagnostic.wasm",
   "sourceComponentSha256": "47fc22cb14f99059f8b234929971388f7cebe8fb2a415862ceb2904be76da9d9",
+  "sourceBuild": {
+    "rustc": "1.96.0 (ac68faa20 2026-05-25)",
+    "target": "wasm32-wasip2",
+    "host": "x86_64-pc-windows-msvc",
+    "bitReproducibleAcrossHosts": false
+  },
   "transpiler": "@bytecodealliance/jco@1.17.9",
   "profiles": [
     "approved-release-v1",
