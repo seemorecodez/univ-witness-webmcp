@@ -69,6 +69,9 @@ pins their source files to `diagnostic/manifest.json`.
 The edge runtime does not expose the original compiled-module bytes for hashing.
 Its receipt therefore says `runtimeSha256Observed: false` and describes a
 build-pinned static binding. It never re-labels expected digests as observed facts.
+The Workers clock can remain at zero during an invocation, so the edge receipt also
+labels that timing limitation; termination and output are observed, but
+sub-millisecond elapsed time is not claimed.
 
 Both hosts instantiate the same generated component adapter with the Preview 2
 shim, empty environment, zero preopens, disabled guest network, and bounded output

@@ -145,6 +145,8 @@ export interface WorkloadResult {
 export interface RuntimeObservation {
   termination: 'completed';
   durationMs: number;
+  timingSource: 'performance.now';
+  timingNote?: string;
   stdoutCapturedBytes: number;
   stdoutWrittenBytes: number;
   stdoutTruncated: boolean;

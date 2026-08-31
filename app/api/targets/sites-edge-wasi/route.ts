@@ -57,7 +57,10 @@ export async function POST(request: Request) {
         environmentVariables: 0,
         outputCaptureLimitBytes: OUTPUT_LIMIT_BYTES,
       },
-      hostObserved: result.hostObserved,
+      hostObserved: {
+        ...result.hostObserved,
+        timingNote: 'The Workers clock may remain at zero during an invocation; termination and output are observed, but sub-millisecond elapsed time is not claimed.',
+      },
       artifactVerification: {
         runtimeSha256Observed: false,
         binding: 'static-compiled-module-import',

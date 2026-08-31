@@ -53,6 +53,7 @@ assert(contract.includes('identityAuthorized: false'), 'handoff assurance limit 
 assert(client.includes("binding: 'sha256-before-instantiation'"), 'browser runtime digest gate is missing');
 assert(edge.includes("binding: 'static-compiled-module-import'"), 'edge static-module binding is missing');
 assert(edge.includes('runtimeSha256Observed: false'), 'edge runtime hash limitation is not explicit');
+assert(edge.includes('Workers clock may remain at zero'), 'edge timing limitation is not explicit');
 assert(runtime.includes('enableNetwork: false'), 'guest networking must remain disabled');
 assert(contract.includes("['upload', 'shell', 'native', 'OCI', 'worker', 'daemon', 'QEMU'"), 'closed public boundary is not documented');
 assert(!page.includes('hello-wasi') && !contract.includes('minimal-command-v1'), 'stale component name found');

@@ -81,6 +81,7 @@ export async function executePortableWorkload(
     hostObserved: {
       termination: 'completed',
       durationMs,
+      timingSource: 'performance.now',
       stdoutCapturedBytes: captured.capturedBytes,
       stdoutWrittenBytes: captured.writtenBytes,
       stdoutTruncated: captured.truncated,
