@@ -28,6 +28,18 @@ origin and called `run_release_diagnostic` through its WebMCP capability with
 The exact returned object is in [production-webmcp-receipt.json](production-webmcp-receipt.json).
 The ID is session-local by design and is not a remotely attested identifier.
 
+## Required submission CI
+
+- Implementation commit: `a3a5e58514dd1a4e829a924be091219405813183`
+- Public run: [Witness required gate 33439924214](https://github.com/seemorecodez/univ-witness-webmcp/actions/runs/33439924214), succeeded
+- Branch protection: strict required context `Witness required gate`
+- Force pushes and branch deletion: disabled
+- Administrator enforcement: disabled so the solo maintainer can push a commit that
+  creates its own status; pull requests cannot merge without the required context
+
+The inherited UNIV repository's unrelated cross-platform jobs remain historical
+failures and are not represented as this submission's passing gate.
+
 ## Viewport screenshots
 
 1. [Overview](screenshots/01-overview.png) — audience, workflow, closed profiles,
