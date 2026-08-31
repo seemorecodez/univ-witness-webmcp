@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "witness.component-manifest/v1",
+  "componentId": "release-policy-diagnostic-v1",
+  "sourceComponentSha256": "47fc22cb14f99059f8b234929971388f7cebe8fb2a415862ceb2904be76da9d9",
+  "transpiler": "@bytecodealliance/jco@1.17.9",
+  "profiles": [
+    "approved-release-v1",
+    "blocked-release-v1"
+  ],
+  "coreModules": {
+    "witness-release-diagnostic.core.wasm": "d68feaf63019279c72af748a29527c74ac7a44023bea812a1e880712bcc5203c",
+    "witness-release-diagnostic.core2.wasm": "408f82de838034d97d89cd3855c41c48f7e3af6e096b5a4d24dfb5975e1900a5",
+    "witness-release-diagnostic.core3.wasm": "0df3129978bb49e53f8da9d7f2d92a9f836c374e3f92fc61c39c57b39a01f7a7"
+  }
+}

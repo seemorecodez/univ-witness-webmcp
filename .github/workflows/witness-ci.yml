@@ -1,0 +1,54 @@
+name: Witness required gate
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: witness-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  witness-required-gate:
+    name: Witness required gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci
+      - name: Install WASI Preview 2 target
+        run: rustup target add wasm32-wasip2
+      - name: Test diagnostic policy
+        run: cargo test --manifest-path diagnostic/Cargo.toml
+      - name: Build source component
+        run: npm run build:diagnostic
+      - name: Reproduce browser modules with pinned jco
+        run: >-
+          npx --yes --package @bytecodealliance/jco@1.17.9 jco transpile
+          diagnostic/target/wasm32-wasip2/release/witness-release-diagnostic.wasm
+          -o "$RUNNER_TEMP/witness-generated"
+          --name witness-release-diagnostic
+          --instantiation async
+          --no-typescript
+          --no-nodejs-compat
+      - name: Verify executable set and evidence boundary
+        run: node scripts/verify-witness.mjs --generated-dir "$RUNNER_TEMP/witness-generated"
+      - name: Lint
+        run: npm run lint
+      - name: Build deployable site
+        run: npm run build
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Audit complete dependency tree
+        run: npm audit --audit-level=high
+
