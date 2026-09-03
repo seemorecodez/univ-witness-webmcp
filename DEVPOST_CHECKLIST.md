@@ -12,7 +12,7 @@
 - [x] Zero known npm vulnerabilities at the 2026-09-03 validation checkpoint.
 - [x] Public repository URL added to README: <https://github.com/seemorecodez/univ-witness-webmcp>.
 - [x] Updated OpenAI Sites deployment returns HTTP 200 and completes the two-target handoff: <https://univ-witness-proof.seemoreas0-0.chatgpt.site>.
-- [ ] Exact production commit `28559512e58cc6daf0796dcf09037e427c6c59a5` is awaiting its public `UNIV Deploy required gate` result; the identical local gate is green.
+- [x] Exact production commit `28559512e58cc6daf0796dcf09037e427c6c59a5` passed public `UNIV Deploy required gate` run `33787685117`.
 - [x] Four refreshed viewport screenshots captured from the deployed URL in `evidence/screenshots/`.
 - [ ] Public YouTube demo under three minutes with audio.
 - [ ] Current Devpost fields and requirements rechecked immediately before submission.
