@@ -45,6 +45,8 @@ assert(page.includes('One deployment intent. Two execution capsules. One observe
 assert(page.includes('browser-wasi') && page.includes('sites-edge-wasi'), 'both explicit targets must be visible');
 assert(page.includes('Portability frontier + runtime witness'), 'visible compiler-to-witness chain is missing');
 assert(page.includes('setPlan(next.selectedPlan)'), 'creating a permitted handoff must replace any previously displayed blocked plan');
+assert(page.includes('const receiptPlan = await planDeployment(next.manifestId)'), 'deployment receipt must re-anchor the displayed plan');
+assert(page.includes('setPlan(receiptPlan)'), 'deployment completion must synchronize the displayed plan');
 assert(page.includes('via WebMCP'), 'visible WebMCP provenance label is missing');
 assert(page.includes('Independent attestation'), 'attestation caveat is missing');
 for (const tool of ['get_univ_capabilities', 'compile_univ_deployment', 'create_deployment_handoff', 'deploy_univ_manifest', 'get_deployment_evidence']) {

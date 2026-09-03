@@ -101,6 +101,9 @@ export default function Home() {
 
   const runDeployment = useCallback(async (handoffId: unknown, handoffDigest: unknown, source: InvocationSource) => {
     const next = await invoke(TOOL_NAMES[3], source, () => deployStoredHandoff(handoffId, handoffDigest, source));
+    const receiptPlan = await planDeployment(next.manifestId);
+    setManifestId(next.manifestId);
+    setPlan(receiptPlan);
     setReceipt(next);
     return next;
   }, [invoke]);
