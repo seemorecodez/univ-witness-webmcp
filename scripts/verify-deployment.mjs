@@ -49,6 +49,8 @@ assert(page.includes('const receiptPlan = await planDeployment(next.manifestId)'
 assert(page.includes('setPlan(receiptPlan)'), 'deployment completion must synchronize the displayed plan');
 assert(page.includes('via WebMCP'), 'visible WebMCP provenance label is missing');
 assert(page.includes('Independent attestation'), 'attestation caveat is missing');
+assert(page.includes("item.state === 'REFUSED' ? 'text-[#ff9d91]'"), 'timeline details must reserve red for refused calls');
+assert(page.includes('Independent attestation / not claimed'), 'attestation absence must be presented as a limitation, not a failure');
 for (const tool of ['get_univ_capabilities', 'compile_univ_deployment', 'create_deployment_handoff', 'deploy_univ_manifest', 'get_deployment_evidence']) {
   assert(page.includes(`'${tool}'`), `WebMCP tool missing: ${tool}`);
 }

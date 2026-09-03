@@ -323,7 +323,7 @@ export default function Home() {
                 <ClaimCard title="Compiled + enforced" text="One closed intent is checked against target passports. Only verified, digest-bound execution capsules enter the five-minute handoff." />
                 <ClaimCard title="Actively observed" text={receipt ? 'Two target terminations and byte-identical workload output were observed. Browser module hashes were also observed before compilation.' : 'Reserved for facts emitted by real target executions; no portability claim is made yet.'} />
                 <ClaimCard title="Build-pinned edge binding" text="The edge receives static compiled-module imports pinned by CI. The edge receipt does not claim runtime byte hashing because Workers do not expose those module bytes." />
-                <ClaimCard title="Independent attestation" text="Not present. Handoff integrity is neither caller authentication nor third-party attestation." danger />
+                <ClaimCard title="Independent attestation / not claimed" text="No independent signer or outside attester is part of this demo. Handoff integrity is not caller authentication or third-party attestation." caution />
               </div>
 
               {receipt && <div className="mt-4 font-mono text-[10px] leading-5 text-white/45"><p>evidence / {receipt.evidenceId}</p><p>receipt sha256 / {shortDigest(receipt.evidenceDigest)}</p><p>invocation / via {receipt.source}</p></div>}
@@ -338,7 +338,7 @@ export default function Home() {
               {timeline.length === 0 ? <li className="p-5 text-sm text-white/38">Waiting for WebMCP registration or a deployment action…</li> : timeline.map((item) => (
                 <li key={item.id} className="grid grid-cols-[58px_minmax(0,1fr)_auto] gap-3 p-4 text-xs">
                   <time className="font-mono text-white/35">{item.at}</time>
-                  <div className="min-w-0"><p className="truncate font-mono text-white/75">{item.operation}</p><p className={item.source === 'WebMCP' ? 'mt-1 text-[#9ef7bf]' : 'mt-1 text-white/38'}>via {item.source}</p>{item.detail && <p className="mt-1 truncate text-[#ff9d91]" title={item.detail}>{item.detail}</p>}</div>
+                  <div className="min-w-0"><p className="truncate font-mono text-white/75">{item.operation}</p><p className={item.source === 'WebMCP' ? 'mt-1 text-[#9ef7bf]' : 'mt-1 text-white/38'}>via {item.source}</p>{item.detail && <p className={`mt-1 truncate ${item.state === 'REFUSED' ? 'text-[#ff9d91]' : item.state === 'COMPLETE' ? 'text-[#9ef7bf]/75' : 'text-white/45'}`} title={item.detail}>{item.detail}</p>}</div>
                   <span className={`timeline-state ${item.state === 'REFUSED' ? 'timeline-refused' : item.state === 'STARTED' ? 'timeline-started' : ''}`}>{item.state}</span>
                 </li>
               ))}
@@ -368,6 +368,6 @@ function ComparisonCheck({ label, pass }: { label: string; pass: boolean }) {
   return <div className="rounded border border-white/8 bg-black/20 px-2 py-2 text-center font-mono text-[9px] text-white/48"><span className={pass ? 'text-[#9ef7bf]' : 'text-white/24'}>{pass ? '✓' : '○'}</span> {label}</div>;
 }
 
-function ClaimCard({ title, text, danger }: { title: string; text: string; danger?: boolean }) {
-  return <div className={`rounded-lg border p-3 ${danger ? 'border-[#ff7b6d]/20 bg-[#ff7b6d]/5' : 'border-white/10 bg-white/[0.02]'}`}><p className={`text-xs font-semibold ${danger ? 'text-[#ff9d91]' : 'text-white/80'}`}>{title}</p><p className="mt-1.5 text-[11px] leading-5 text-white/45">{text}</p></div>;
+function ClaimCard({ title, text, caution }: { title: string; text: string; caution?: boolean }) {
+  return <div className={`rounded-lg border p-3 ${caution ? 'border-[#ffd37b]/20 bg-[#ffd37b]/[0.045]' : 'border-white/10 bg-white/[0.02]'}`}><p className={`text-xs font-semibold ${caution ? 'text-[#ffd37b]' : 'text-white/80'}`}>{title}</p><p className="mt-1.5 text-[11px] leading-5 text-white/45">{text}</p></div>;
 }
