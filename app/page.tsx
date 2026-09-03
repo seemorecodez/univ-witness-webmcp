@@ -27,7 +27,7 @@ type TimelineItem = {
 
 const TOOL_NAMES = [
   'get_univ_capabilities',
-  'plan_univ_deployment',
+  'compile_univ_deployment',
   'create_deployment_handoff',
   'deploy_univ_manifest',
   'get_deployment_evidence',
@@ -87,11 +87,16 @@ export default function Home() {
   }, [invoke]);
 
   const makeHandoff = useCallback(async (selected: unknown, source: InvocationSource) => {
-    const next = await invoke(TOOL_NAMES[2], source, () => createStoredHandoff(selected));
-    setManifestId(next.manifestId);
-    setHandoff(next);
+    const next = await invoke(TOOL_NAMES[2], source, async () => {
+      const selectedPlan = await planDeployment(selected);
+      const selectedHandoff = await createStoredHandoff(selected);
+      return { selectedPlan, selectedHandoff };
+    });
+    setManifestId(next.selectedHandoff.manifestId);
+    setPlan(next.selectedPlan);
+    setHandoff(next.selectedHandoff);
     setReceipt(null);
-    return next;
+    return next.selectedHandoff;
   }, [invoke]);
 
   const runDeployment = useCallback(async (handoffId: unknown, handoffDigest: unknown, source: InvocationSource) => {
@@ -125,7 +130,7 @@ export default function Home() {
       },
       {
         name: TOOL_NAMES[1],
-        description: 'Create a deterministic deployment plan for one included manifest without executing it.',
+        description: 'Compile one included deployment intent against registered target passports and return its finite portability frontier, proof certificates, and execution capsules without running them.',
         inputSchema: manifestSchema,
         execute: (input) => runPlan(input.manifestId, 'WebMCP'),
       },
@@ -175,7 +180,7 @@ export default function Home() {
     };
   }, [addTimeline, invoke, makeHandoff, runDeployment, runPlan]);
 
-  const exactJson = useMemo(() => JSON.stringify(receipt ?? handoff ?? plan, null, 2), [handoff, plan, receipt]);
+  const exactJson = useMemo(() => JSON.stringify({ plan, handoff, receipt }, null, 2), [handoff, plan, receipt]);
   const permitted = plan?.decision === 'PERMIT';
   const targetReceipts = new Map(receipt?.targetReceipts.map((item) => [item.targetId, item]));
 
@@ -209,7 +214,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-[1540px] items-center justify-between gap-5 px-5 py-4 lg:px-8">
           <div className="flex items-center gap-3">
             <div className="grid h-9 w-9 place-items-center rounded-md border border-[#9ef7bf]/40 bg-[#9ef7bf]/10 font-mono text-xs font-black text-[#9ef7bf]">UD</div>
-            <div><p className="font-semibold tracking-tight">UNIV Deploy</p><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">Universal WASI deployment control plane</p></div>
+            <div><p className="font-semibold tracking-tight">UNIV Deploy</p><p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">Proof-carrying WASI deployment</p></div>
           </div>
           <div className="flex items-center gap-3">
             <span className={`status-pill ${webMcpStatus === 'ready' ? 'status-ready' : webMcpStatus === 'failed' ? 'status-danger' : ''}`}>
@@ -223,20 +228,27 @@ export default function Home() {
       <div className="mx-auto max-w-[1540px] px-5 py-7 lg:px-8">
         <section className="mb-6 grid gap-5 border-b border-white/10 pb-6 lg:grid-cols-[1.45fr_1fr]">
           <div>
-            <p className="eyebrow">Universal deployment, demonstrated</p>
-            <h1 className="mt-2 max-w-4xl text-3xl font-semibold leading-tight tracking-[-0.035em] sm:text-4xl">One manifest. Two real runtimes. One controlled handoff.</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-white/58">A browser agent can plan and deploy the same included, digest-pinned WASI workload to the browser and OpenAI Sites edge, then compare actual target receipts without receiving arbitrary code execution.</p>
+            <p className="eyebrow">Compile deployment, then prove what happened</p>
+            <h1 className="mt-2 max-w-4xl text-3xl font-semibold leading-tight tracking-[-0.035em] sm:text-4xl">One deployment intent. Two execution capsules. One observed outcome.</h1>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-white/58">A browser agent compiles one digest-pinned WASI intent against unrelated target passports, binds only verified capsules into the handoff, executes both hosts, and returns a bounded portability witness.</p>
           </div>
           <div className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10">
-            <Metric value="2" label="actual targets" />
-            <Metric value="1" label="shared manifest" />
+            <Metric value={String(plan?.portabilityFrontier.length ?? '—')} label="frontier targets" />
+            <Metric value={String(plan?.targets.filter((target) => target.capsule).length ?? '—')} label="verified capsules" />
             <Metric value="0" label="arbitrary code" />
           </div>
         </section>
 
+        <div className="mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 sm:grid-cols-4">
+          <FlowStep index="01" label="deployment intent" state="BOUND" />
+          <FlowStep index="02" label="target passports" state={plan ? 'DISCOVERED' : 'PENDING'} />
+          <FlowStep index="03" label="execution capsules" state={plan?.decision === 'PERMIT' ? 'VERIFIED' : plan ? 'REFUSED' : 'PENDING'} />
+          <FlowStep index="04" label="runtime witness" state={receipt ? 'OBSERVED' : 'PENDING'} />
+        </div>
+
         <div className="grid gap-5 xl:grid-cols-[350px_minmax(0,1fr)_390px]">
           <section className="panel">
-            <div className="panel-heading"><div><p className="eyebrow">01 / Model</p><h2>Closed deployment manifest</h2></div><span className="mono-tag">manifest-driven</span></div>
+            <div className="panel-heading"><div><p className="eyebrow">01 / Intent</p><h2>Closed deployment intent</h2></div><span className="mono-tag">target neutral</span></div>
             <div className="space-y-3 p-4">
               {(Object.entries(MANIFESTS) as Array<[ManifestId, (typeof MANIFESTS)[ManifestId]]>).map(([id, manifest]) => {
                 const decision = manifest.requirements.guestNetwork === 'disabled' ? 'PERMIT' : 'BLOCK';
@@ -252,7 +264,7 @@ export default function Home() {
               <div className="mb-2 flex items-center justify-between text-xs"><span className="text-white/45">Included workload</span><span className="mono-tag">digest pinned</span></div>
               <code className="block break-all rounded bg-black/35 p-3 text-[11px] text-[#b8c6bd]">{COMPONENT_ID}</code>
               <div className="mt-4 grid grid-cols-2 gap-2">
-                <button className="button-secondary" type="button" disabled={busy !== null} onClick={onPlan}>{busy === 'plan' ? 'Planning…' : 'Inspect plan'}</button>
+                <button className="button-secondary" type="button" disabled={busy !== null} onClick={onPlan}>{busy === 'plan' ? 'Compiling…' : 'Compile intent'}</button>
                 <button className="button-secondary" type="button" disabled={busy !== null || !permitted} onClick={onHandoff}>{busy === 'handoff' ? 'Binding…' : 'Create handoff'}</button>
                 <button className="button-primary col-span-2" type="button" disabled={busy !== null || !handoff || Boolean(receipt)} onClick={onDeploy}>{busy === 'deploy' ? 'Deploying two targets…' : receipt ? 'Deployment complete' : 'Deploy both targets'}</button>
               </div>
@@ -261,11 +273,12 @@ export default function Home() {
           </section>
 
           <section className="panel min-w-0">
-            <div className="panel-heading"><div><p className="eyebrow">02 / Execute + compare</p><h2>{receipt ? 'Portable deployment receipt' : handoff ? 'Controlled handoff ready' : 'Target-aware deployment plan'}</h2></div><span className={plan?.decision === 'BLOCK' ? 'verdict-block' : 'verdict-pass'}>{receipt ? 'PORTABLE' : plan?.decision ?? 'LOADING'}</span></div>
+            <div className="panel-heading"><div><p className="eyebrow">02 / Compile → execute → witness</p><h2>{receipt ? 'Runtime portability witness' : handoff ? 'Verified capsules bound to handoff' : plan?.decision === 'BLOCK' ? 'Empty portability frontier' : 'Portability frontier compiled'}</h2></div><span className={plan?.decision === 'BLOCK' ? 'verdict-block' : 'verdict-pass'}>{receipt ? 'WITNESSED' : plan?.decision === 'PERMIT' ? 'COMPILED' : plan ? 'EMPTY' : 'LOADING'}</span></div>
             <div className="p-4 sm:p-5">
-              <div className="grid gap-3 sm:grid-cols-3">
-                <EvidenceCard label="Manifest" value={manifestId} />
-                <EvidenceCard label="Manifest sha256" value={shortDigest(plan?.manifestDigest)} />
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <EvidenceCard label="Deployment intent" value={manifestId} />
+                <EvidenceCard label="Intent sha256" value={shortDigest(plan?.manifestDigest)} />
+                <EvidenceCard label="Compiled program" value={shortDigest(plan?.programDigest)} tone={plan?.decision === 'PERMIT' ? 'green' : undefined} />
                 <EvidenceCard label="Handoff" value={handoff ? 'integrity-bound' : permitted ? 'available' : 'refused'} tone={handoff ? 'green' : undefined} />
               </div>
 
@@ -275,12 +288,16 @@ export default function Home() {
                   const targetReceipt = targetReceipts.get(targetId);
                   return (
                     <article key={targetId} className="rounded-lg border border-white/10 bg-black/25 p-4">
-                      <div className="flex items-start justify-between gap-3"><div><p className="eyebrow">Explicit target</p><h3 className="mt-1 font-mono text-xs text-white/85">{targetId}</h3></div><span className={targetReceipt ? 'verdict-pass' : 'mono-tag'}>{targetReceipt ? 'EXECUTED' : 'MODELED'}</span></div>
+                      <div className="flex items-start justify-between gap-3"><div><p className="eyebrow">Target passport</p><h3 className="mt-1 font-mono text-xs text-white/85">{targetId}</h3></div><span className={targetReceipt || targetPlan?.status === 'READY' ? 'verdict-pass' : targetPlan?.status === 'BLOCKED' ? 'verdict-block' : 'mono-tag'}>{targetReceipt ? 'EXECUTED' : targetPlan?.status === 'READY' ? 'CAPSULE READY' : targetPlan?.status ?? 'DISCOVERING'}</span></div>
                       <p className="mt-3 text-[11px] leading-5 text-white/48">{targetReceipt?.environment ?? targetPlan?.runtime}</p>
                       <div className="mt-3 border-t border-white/8 pt-3 font-mono text-[9px] leading-5 text-white/38">
                         <p>binding / {targetReceipt?.artifactVerification.binding ?? targetPlan?.artifactBinding}</p>
+                        <p>passport / {shortDigest(targetPlan?.passportDigest)}</p>
+                        <p>certificate / {shortDigest(targetPlan?.certificate.certificateDigest)}</p>
+                        <p>capsule / {shortDigest(targetReceipt?.capsuleDigest ?? targetPlan?.capsule?.capsuleDigest)}</p>
                         <p>runtime hash / {targetReceipt ? (targetReceipt.artifactVerification.runtimeSha256Observed ? 'observed' : 'not exposed') : 'pending'}</p>
                         <p>output / {targetReceipt ? shortDigest(targetReceipt.hostObserved.workloadOutputSha256) : 'pending'}</p>
+                        {targetPlan?.counterexamples.map((counterexample) => <p key={counterexample} className="text-[#ff9d91]">counterexample / {counterexample}</p>)}
                       </div>
                     </article>
                   );
@@ -288,26 +305,26 @@ export default function Home() {
               </div>
 
               <div className={`rounded-lg border p-4 ${receipt ? 'border-[#9ef7bf]/25 bg-[#9ef7bf]/[0.045]' : 'border-dashed border-white/15 bg-black/15'}`}>
-                <div className="flex items-start justify-between gap-4"><div><p className="eyebrow">Portability comparison</p><p className="mt-1 text-sm text-white/68">{receipt ? 'The same manifest, component, and deterministic output completed on both actual targets.' : 'A portability verdict is withheld until both target receipts exist.'}</p></div><span className={receipt ? 'verdict-pass' : 'mono-tag'}>{receipt ? '2 / 2 PASS' : 'PENDING'}</span></div>
+                <div className="flex items-start justify-between gap-4"><div><p className="eyebrow">Portability frontier + runtime witness</p><p className="mt-1 text-sm text-white/68">{receipt ? 'Both compiled capsules executed, and both receipts agree over the intent’s declared observation contract.' : plan?.decision === 'BLOCK' ? 'The intent has no compatible registered target. No execution capsule or handoff can be produced.' : `${plan?.portabilityFrontier.length ?? 0} target passports satisfy the finite compile-time proof. Runtime equivalence is withheld until both execute.`}</p></div><span className={receipt ? 'verdict-pass' : plan?.decision === 'BLOCK' ? 'verdict-block' : 'mono-tag'}>{receipt ? '2 / 2 MATCH' : plan ? `${plan.portabilityFrontier.length} / ${plan.targets.length} READY` : 'PENDING'}</span></div>
                 <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <ComparisonCheck label="same manifest" pass={Boolean(receipt)} />
-                  <ComparisonCheck label="same component" pass={Boolean(receipt)} />
+                  <ComparisonCheck label="proof clauses" pass={plan?.decision === 'PERMIT'} />
+                  <ComparisonCheck label="capsules bound" pass={Boolean(handoff)} />
                   <ComparisonCheck label="same output" pass={Boolean(receipt)} />
                   <ComparisonCheck label="actual targets" pass={Boolean(receipt)} />
                 </div>
               </div>
 
-              {handoff && <div className="mt-4 grid gap-1 rounded-lg border border-white/10 bg-black/35 p-4 font-mono text-[10px] leading-5 text-white/48"><span>handoff / {handoff.handoffId}</span><span>sha256 / {shortDigest(handoff.handoffDigest)}</span><span>expires / {new Date(handoff.expiresAt).toLocaleTimeString()}</span><span className="text-[#ffd37b]">integrity bound / yes · identity authorized / no</span></div>}
+              {handoff && <div className="mt-4 grid gap-1 rounded-lg border border-white/10 bg-black/35 p-4 font-mono text-[10px] leading-5 text-white/48"><span>handoff / {handoff.handoffId}</span><span>sha256 / {shortDigest(handoff.handoffDigest)}</span><span>program / {shortDigest(handoff.programDigest)}</span><span>capsules / {handoff.executionCapsules.map((capsule) => `${capsule.targetId}:${shortDigest(capsule.capsuleDigest)}`).join(' · ')}</span><span>expires / {new Date(handoff.expiresAt).toLocaleTimeString()}</span><span className="text-[#ffd37b]">integrity bound / yes · identity authorized / no</span></div>}
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <ClaimCard title="Configured + enforced" text="Closed manifest and target enums, pinned artifacts, no arbitrary inputs, no preopens or guest network, bounded output, and five-minute handoff expiry." />
+                <ClaimCard title="Compiled + enforced" text="One closed intent is checked against target passports. Only verified, digest-bound execution capsules enter the five-minute handoff." />
                 <ClaimCard title="Actively observed" text={receipt ? 'Two target terminations and byte-identical workload output were observed. Browser module hashes were also observed before compilation.' : 'Reserved for facts emitted by real target executions; no portability claim is made yet.'} />
                 <ClaimCard title="Build-pinned edge binding" text="The edge receives static compiled-module imports pinned by CI. The edge receipt does not claim runtime byte hashing because Workers do not expose those module bytes." />
                 <ClaimCard title="Independent attestation" text="Not present. Handoff integrity is neither caller authentication nor third-party attestation." danger />
               </div>
 
               {receipt && <div className="mt-4 font-mono text-[10px] leading-5 text-white/45"><p>evidence / {receipt.evidenceId}</p><p>receipt sha256 / {shortDigest(receipt.evidenceDigest)}</p><p>invocation / via {receipt.source}</p></div>}
-              <details className="mt-4"><summary className="cursor-pointer text-xs text-white/45 hover:text-white/70">View exact plan, handoff, or receipt JSON</summary><pre className="mt-3 max-h-80 overflow-auto rounded-lg border border-white/10 bg-[#030504] p-4 text-[10px] leading-5 text-[#9eb0a5]">{exactJson}</pre></details>
+              <details className="mt-4"><summary className="cursor-pointer text-xs text-white/45 hover:text-white/70">View exact intent → capsules → receipt JSON</summary><pre className="mt-3 max-h-80 overflow-auto rounded-lg border border-white/10 bg-[#030504] p-4 text-[10px] leading-5 text-[#9eb0a5]">{exactJson}</pre></details>
             </div>
           </section>
 
@@ -333,6 +350,11 @@ export default function Home() {
 
 function Metric({ value, label }: { value: string; label: string }) {
   return <div className="bg-[#0c1210] px-3 py-5 text-center"><strong className="block font-mono text-lg text-[#9ef7bf]">{value}</strong><span className="mt-1 block text-[10px] uppercase tracking-[0.12em] text-white/35">{label}</span></div>;
+}
+
+function FlowStep({ index, label, state }: { index: string; label: string; state: string }) {
+  const active = !['PENDING', 'REFUSED'].includes(state);
+  return <div className="flex items-center justify-between gap-3 bg-[#0c1210] px-4 py-3"><div><span className="font-mono text-[9px] text-white/25">{index}</span><p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-white/55">{label}</p></div><span className={state === 'REFUSED' ? 'verdict-block' : active ? 'verdict-pass' : 'mono-tag'}>{state}</span></div>;
 }
 
 function EvidenceCard({ label, value, tone }: { label: string; value: string; tone?: 'green' }) {

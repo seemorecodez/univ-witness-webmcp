@@ -10,11 +10,13 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "build:diagnostic": "cargo build --manifest-path diagnostic/Cargo.toml --target wasm32-wasip2 --release",
-    "check": "npm run verify && npm run lint && npm run build",
+    "check": "npm run verify && npm run experiment:proof-carrying && npm run lint && npm run build",
     "start": "wrangler dev --config dist/server/wrangler.json",
-    "lint": "oxlint app/page.tsx app/lib/deployment-contract.ts app/lib/deployment.ts app/lib/wasi-runtime.ts app/api/targets/sites-edge-wasi/route.ts app/types/webmcp.d.ts app/types/wasm.d.ts vite.config.ts",
+    "lint": "oxlint app/page.tsx app/lib/deployment-compiler.ts app/lib/deployment-capsule-verifier.ts app/lib/deployment-contract.ts app/lib/deployment.ts app/lib/wasi-runtime.ts app/api/targets/sites-edge-wasi/route.ts app/types/webmcp.d.ts app/types/wasm.d.ts vite.config.ts",
     "format": "oxfmt",
-    "verify": "node scripts/verify-deployment.mjs"
+    "verify": "node scripts/verify-deployment.mjs",
+    "experiment:proof-carrying": "node --test --test-isolation=none experiments/proof-carrying-deployment/*.test.mjs",
+    "demo:proof-carrying": "node experiments/proof-carrying-deployment/demo.mjs"
   },
   "dependencies": {
     "@bytecodealliance/preview2-shim": "0.23.0",

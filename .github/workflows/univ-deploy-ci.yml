@@ -43,6 +43,8 @@ jobs:
           --no-nodejs-compat
       - name: Verify executable set and evidence boundary
         run: node scripts/verify-deployment.mjs --generated-dir "$RUNNER_TEMP/univ-deploy-generated"
+      - name: Test deployment compiler proofs and mutations
+        run: npm run experiment:proof-carrying
       - name: Lint
         run: npm run lint
       - name: Build deployable site

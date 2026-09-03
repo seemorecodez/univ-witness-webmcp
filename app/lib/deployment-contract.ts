@@ -1,3 +1,10 @@
+import {
+  TARGET_PASSPORTS,
+  compileDeploymentProgram,
+  type CompiledTarget,
+  type ExecutionCapsule,
+} from './deployment-compiler';
+
 export const WORKLOAD_ID = 'release-inspector-v1' as const;
 export const COMPONENT_ID = 'univ-portable-workload-v1' as const;
 export const OUTPUT_LIMIT_BYTES = 4_096;
@@ -94,13 +101,14 @@ export const MANIFESTS: Record<ManifestId, DeploymentManifest> = {
 };
 
 export interface DeploymentPlan {
-  schemaVersion: 'univ.deployment-plan/v1';
+  schemaVersion: 'univ.deployment-plan/v2';
   manifestId: ManifestId;
   manifestDigest: string;
+  programDigest: string;
+  portabilityFrontier: TargetId[];
   decision: 'PERMIT' | 'BLOCK';
   enforcementGrade: 'CLOSED_MANIFEST_PINNED_ARTIFACTS';
-  targets: Array<{
-    targetId: TargetId;
+  targets: Array<CompiledTarget & {
     modeled: true;
     execution: 'actual';
     runtime: string;
@@ -112,15 +120,17 @@ export interface DeploymentPlan {
 }
 
 export interface DeploymentHandoff {
-  schemaVersion: 'univ.deployment-handoff/v1';
+  schemaVersion: 'univ.deployment-handoff/v2';
   handoffId: string;
   handoffDigest: string;
   manifestId: 'portable-release-v1';
   manifestDigest: string;
+  programDigest: string;
   componentId: typeof COMPONENT_ID;
   sourceComponentSha256: string;
   coreModuleSha256: typeof CORE_DIGESTS;
   targets: TargetId[];
+  executionCapsules: ExecutionCapsule[];
   constraints: {
     guestNetwork: 'disabled';
     filesystemPreopens: 0;
@@ -154,11 +164,12 @@ export interface RuntimeObservation {
 }
 
 export interface TargetReceipt {
-  schemaVersion: 'univ.target-receipt/v1';
+  schemaVersion: 'univ.target-receipt/v2';
   targetId: TargetId;
   environment: string;
   execution: 'actual';
   handoffId: string;
+  capsuleDigest: string;
   manifestId: 'portable-release-v1';
   componentId: typeof COMPONENT_ID;
   configuredAndEnforced: {
@@ -180,15 +191,17 @@ export interface TargetReceipt {
 }
 
 export interface DeploymentReceipt {
-  schemaVersion: 'univ.deployment-receipt/v1';
+  schemaVersion: 'univ.deployment-receipt/v2';
   evidenceId: string;
   evidenceDigest: string;
   source: InvocationSource;
   createdAt: string;
   manifestId: 'portable-release-v1';
   manifestDigest: string;
+  programDigest: string;
   handoffId: string;
   handoffDigest: string;
+  capsuleDigests: Record<TargetId, string>;
   enforcementGrade: 'CLOSED_MANIFEST_PINNED_ARTIFACTS';
   targetReceipts: TargetReceipt[];
   portability: {
@@ -198,6 +211,21 @@ export interface DeploymentReceipt {
     sameWorkloadOutput: true;
     workloadOutputSha256: string;
     portableAcrossExecutedTargets: true;
+  };
+  runtimeWitness: {
+    schemaVersion: 'univ.runtime-portability-witness/v1';
+    programDigest: string;
+    requiredObservations: string[];
+    actualTargets: TargetId[];
+    sharedObservation: {
+      componentId: typeof COMPONENT_ID;
+      manifestId: 'portable-release-v1';
+      outputSha256: string;
+      status: 'HEALTHY';
+      workloadId: typeof WORKLOAD_ID;
+    };
+    equivalentOverDeclaredObservations: true;
+    limitations: string[];
   };
   evidenceClaims: {
     configuredAndEnforced: string;
@@ -235,33 +263,26 @@ export function assertManifestId(value: unknown): asserts value is ManifestId {
 export async function planDeployment(value: unknown): Promise<DeploymentPlan> {
   assertManifestId(value);
   const manifest = MANIFESTS[value];
-  const decision = manifest.requirements.guestNetwork === 'disabled' ? 'PERMIT' : 'BLOCK';
+  const compiled = await compileDeploymentProgram(manifest);
   return {
-    schemaVersion: 'univ.deployment-plan/v1',
+    schemaVersion: 'univ.deployment-plan/v2',
     manifestId: value,
-    manifestDigest: await sha256Object(manifest),
-    decision,
+    manifestDigest: compiled.manifestDigest,
+    programDigest: compiled.programDigest,
+    portabilityFrontier: compiled.portabilityFrontier,
+    decision: compiled.decision,
     enforcementGrade: 'CLOSED_MANIFEST_PINNED_ARTIFACTS',
-    targets: [
-      {
-        targetId: 'browser-wasi',
+    targets: compiled.targets.map((target) => ({
+        ...target,
         modeled: true,
         execution: 'actual',
-        runtime: 'browser main thread + WebAssembly',
-        artifactBinding: 'runtime SHA-256 before instantiation',
-      },
-      {
-        targetId: 'sites-edge-wasi',
-        modeled: true,
-        execution: 'actual',
-        runtime: 'OpenAI Sites / Cloudflare Workers edge',
-        artifactBinding: 'CI-pinned static compiled-module import',
-      },
-    ],
-    reasons: decision === 'PERMIT'
-      ? ['Both targets satisfy the manifest without guest network, filesystem preopens, environment variables, or arbitrary inputs.']
-      : ['Guest networking is required by the manifest but disabled on every exposed target.'],
-    controlledHandoffAvailable: decision === 'PERMIT',
+        runtime: target.passport.runtime,
+        artifactBinding: target.passport.executionBinding.artifactBinding,
+      })),
+    reasons: compiled.decision === 'PERMIT'
+      ? ['One target-neutral intent compiled into independently checked capsules for every passport in its portability frontier.']
+      : [`No execution capsule was emitted. Counterexamples: ${[...new Set(compiled.targets.flatMap((target) => target.counterexamples))].join(', ') || 'target incompatibility'}.`],
+    controlledHandoffAvailable: compiled.decision === 'PERMIT',
     configuredAndEnforced: [
       'Closed manifest allowlist; no arbitrary code, bytes, path, URL, or arguments',
       'One included source component and three digest-pinned generated core modules',
@@ -279,14 +300,16 @@ export async function createDeploymentHandoff(value: unknown): Promise<Deploymen
   const manifest = MANIFESTS['portable-release-v1'];
   const createdAt = new Date();
   const withoutDigest = {
-    schemaVersion: 'univ.deployment-handoff/v1' as const,
+    schemaVersion: 'univ.deployment-handoff/v2' as const,
     handoffId: crypto.randomUUID(),
     manifestId: 'portable-release-v1' as const,
     manifestDigest: plan.manifestDigest,
+    programDigest: plan.programDigest,
     componentId: COMPONENT_ID,
     sourceComponentSha256: manifest.workload.sourceComponentSha256,
     coreModuleSha256: CORE_DIGESTS,
     targets: [...manifest.targets],
+    executionCapsules: plan.targets.map((target) => target.capsule).filter((capsule): capsule is ExecutionCapsule => capsule !== null),
     constraints: {
       guestNetwork: 'disabled' as const,
       filesystemPreopens: 0 as const,
@@ -302,16 +325,17 @@ export async function createDeploymentHandoff(value: unknown): Promise<Deploymen
 }
 
 function exactKeys(record: Record<string, unknown>, expected: string[]): boolean {
-  const actual = Object.keys(record).sort();
-  return actual.length === expected.length && actual.every((key, index) => key === [...expected].sort()[index]);
+  const actual = Object.keys(record).sort((left, right) => left.localeCompare(right));
+  const wanted = [...expected].sort((left, right) => left.localeCompare(right));
+  return actual.length === expected.length && actual.every((key, index) => key === wanted[index]);
 }
 
 export async function validateDeploymentHandoff(value: unknown, targetId?: TargetId): Promise<DeploymentHandoff> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Malformed deployment handoff refused.');
   const candidate = value as Record<string, unknown>;
-  const keys = ['schemaVersion', 'handoffId', 'handoffDigest', 'manifestId', 'manifestDigest', 'componentId', 'sourceComponentSha256', 'coreModuleSha256', 'targets', 'constraints', 'createdAt', 'expiresAt', 'integrityBound', 'identityAuthorized'];
+  const keys = ['schemaVersion', 'handoffId', 'handoffDigest', 'manifestId', 'manifestDigest', 'programDigest', 'componentId', 'sourceComponentSha256', 'coreModuleSha256', 'targets', 'executionCapsules', 'constraints', 'createdAt', 'expiresAt', 'integrityBound', 'identityAuthorized'];
   if (!exactKeys(candidate, keys)) throw new Error('Unexpected handoff fields refused.');
-  if (candidate.schemaVersion !== 'univ.deployment-handoff/v1' || candidate.manifestId !== 'portable-release-v1' || candidate.componentId !== COMPONENT_ID) {
+  if (candidate.schemaVersion !== 'univ.deployment-handoff/v2' || candidate.manifestId !== 'portable-release-v1' || candidate.componentId !== COMPONENT_ID) {
     throw new Error('Unknown handoff contract refused.');
   }
   if (typeof candidate.handoffId !== 'string' || !/^[0-9a-f-]{36}$/.test(candidate.handoffId)) throw new Error('Invalid handoff ID refused.');
@@ -324,6 +348,11 @@ export async function validateDeploymentHandoff(value: unknown, targetId?: Targe
   if (typeof candidate.expiresAt !== 'string' || Date.parse(candidate.expiresAt) <= Date.now()) throw new Error('Expired deployment handoff refused.');
   const expectedManifestDigest = await sha256Object(MANIFESTS['portable-release-v1']);
   if (candidate.manifestDigest !== expectedManifestDigest) throw new Error('Manifest digest mismatch refused.');
+  const expectedPlan = await planDeployment('portable-release-v1');
+  if (candidate.programDigest !== expectedPlan.programDigest) throw new Error('Compiled deployment program digest mismatch refused.');
+  const expectedCapsules = expectedPlan.targets.map((target) => target.capsule).filter((capsule): capsule is ExecutionCapsule => capsule !== null);
+  if (canonicalize(candidate.executionCapsules) !== canonicalize(expectedCapsules)) throw new Error('Execution capsule set mismatch refused.');
+  if (targetId && !expectedCapsules.some((capsule) => capsule.targetId === targetId)) throw new Error('Verified execution capsule missing for target.');
   if (candidate.sourceComponentSha256 !== MANIFESTS['portable-release-v1'].workload.sourceComponentSha256) throw new Error('Source component digest mismatch refused.');
   if (canonicalize(candidate.coreModuleSha256) !== canonicalize(CORE_DIGESTS)) throw new Error('Core-module digest set mismatch refused.');
   if (canonicalize(candidate.constraints) !== canonicalize({ guestNetwork: 'disabled', filesystemPreopens: 0, environmentVariables: 0, arbitraryCode: 'refused' })) {
@@ -338,9 +367,11 @@ export function getCapabilities() {
   return {
     service: 'UNIV Deploy',
     audience: 'Platform, release, and security teams',
-    workflow: 'Plan one manifest, hand it to two explicit WASI targets, execute both, and compare bounded receipts.',
+    workflow: 'Compile one deployment intent against target passports, bind verified execution capsules into a controlled handoff, run two WASI targets, and compare bounded receipts.',
     manifests: Object.keys(MANIFESTS),
     actualTargets: ['browser-wasi', 'sites-edge-wasi'],
+    targetPassports: TARGET_PASSPORTS,
+    compilerClaim: 'Finite portability frontier over registered target passports; not universal compatibility with unregistered hosts.',
     workloadIds: [WORKLOAD_ID],
     executableSurface: 'included digest-pinned WASI component only',
     unavailablePaths: ['upload', 'shell', 'native', 'OCI', 'worker', 'daemon', 'QEMU', 'arbitrary URL', 'arbitrary bytes'],

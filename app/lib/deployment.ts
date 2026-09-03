@@ -10,6 +10,7 @@ import {
   type DeploymentHandoff,
   type DeploymentReceipt,
   type InvocationSource,
+  type TargetId,
   type TargetReceipt,
 } from './deployment-contract';
 import { executePortableWorkload } from './wasi-runtime';
@@ -25,6 +26,8 @@ export async function createStoredHandoff(manifestId: unknown): Promise<Deployme
 
 async function executeBrowserTarget(handoff: DeploymentHandoff): Promise<TargetReceipt> {
   await validateDeploymentHandoff(handoff, 'browser-wasi');
+  const capsule = handoff.executionCapsules.find((item) => item.targetId === 'browser-wasi');
+  if (!capsule) throw new Error('Verified browser execution capsule missing.');
   const observedCoreDigests = {} as Record<CoreModuleName, string>;
   const result = await executePortableWorkload(async (name) => {
     if (!(name in CORE_DIGESTS)) throw new Error(`Unlisted executable module refused: ${name}`);
@@ -39,11 +42,12 @@ async function executeBrowserTarget(handoff: DeploymentHandoff): Promise<TargetR
   const allRuntimeDigestsMatched = Object.entries(CORE_DIGESTS).every(([name, digest]) => observedCoreDigests[name as CoreModuleName] === digest);
   if (!allRuntimeDigestsMatched) throw new Error('Browser runtime did not observe every required core-module digest.');
   return {
-    schemaVersion: 'univ.target-receipt/v1',
+    schemaVersion: 'univ.target-receipt/v2',
     targetId: 'browser-wasi',
     environment: 'browser main thread + WebAssembly',
     execution: 'actual',
     handoffId: handoff.handoffId,
+    capsuleDigest: capsule.capsuleDigest,
     manifestId: 'portable-release-v1',
     componentId: COMPONENT_ID,
     configuredAndEnforced: {
@@ -69,11 +73,12 @@ function assertTargetReceipt(value: unknown, targetId: 'sites-edge-wasi'): asser
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Edge returned a malformed target receipt.');
   const receipt = value as Partial<TargetReceipt>;
   if (
-    receipt.schemaVersion !== 'univ.target-receipt/v1' ||
+    receipt.schemaVersion !== 'univ.target-receipt/v2' ||
     receipt.targetId !== targetId ||
     receipt.execution !== 'actual' ||
     receipt.manifestId !== 'portable-release-v1' ||
     receipt.componentId !== COMPONENT_ID ||
+    typeof receipt.capsuleDigest !== 'string' ||
     receipt.hostObserved?.termination !== 'completed' ||
     receipt.componentReported?.status !== 'HEALTHY' ||
     receipt.artifactVerification?.runtimeSha256Observed !== false
@@ -92,6 +97,8 @@ async function executeEdgeTarget(handoff: DeploymentHandoff): Promise<TargetRece
   if (!response.ok) throw new Error(typeof payload?.error === 'string' ? payload.error : `Edge handoff failed (${response.status}).`);
   assertTargetReceipt(payload?.receipt, 'sites-edge-wasi');
   if (payload.receipt.handoffId !== handoff.handoffId) throw new Error('Edge receipt handoff mismatch.');
+  const capsule = handoff.executionCapsules.find((item) => item.targetId === 'sites-edge-wasi');
+  if (!capsule || payload.receipt.capsuleDigest !== capsule.capsuleDigest) throw new Error('Edge receipt capsule mismatch.');
   return payload.receipt;
 }
 
@@ -113,15 +120,21 @@ export async function deployStoredHandoff(
     throw new Error('Portability comparison failed: target workload outputs differ.');
   }
   const evidenceId = crypto.randomUUID();
+  const capsuleDigests = {
+    'browser-wasi': browserReceipt.capsuleDigest,
+    'sites-edge-wasi': edgeReceipt.capsuleDigest,
+  };
   const withoutDigest = {
-    schemaVersion: 'univ.deployment-receipt/v1' as const,
+    schemaVersion: 'univ.deployment-receipt/v2' as const,
     evidenceId,
     source,
     createdAt: new Date().toISOString(),
     manifestId: 'portable-release-v1' as const,
     manifestDigest: handoff.manifestDigest,
+    programDigest: handoff.programDigest,
     handoffId: handoff.handoffId,
     handoffDigest: handoff.handoffDigest,
+    capsuleDigests,
     enforcementGrade: 'CLOSED_MANIFEST_PINNED_ARTIFACTS' as const,
     targetReceipts: [browserReceipt, edgeReceipt],
     portability: {
@@ -131,6 +144,24 @@ export async function deployStoredHandoff(
       sameWorkloadOutput: true as const,
       workloadOutputSha256: browserReceipt.hostObserved.workloadOutputSha256,
       portableAcrossExecutedTargets: true as const,
+    },
+    runtimeWitness: {
+      schemaVersion: 'univ.runtime-portability-witness/v1' as const,
+      programDigest: handoff.programDigest,
+      requiredObservations: ['componentId', 'manifestId', 'outputSha256', 'status', 'workloadId'],
+      actualTargets: ['browser-wasi', 'sites-edge-wasi'] as TargetId[],
+      sharedObservation: {
+        componentId: COMPONENT_ID,
+        manifestId: 'portable-release-v1' as const,
+        outputSha256: browserReceipt.hostObserved.workloadOutputSha256,
+        status: browserReceipt.componentReported.status,
+        workloadId: browserReceipt.componentReported.workloadId,
+      },
+      equivalentOverDeclaredObservations: true as const,
+      limitations: [
+        'Equivalence is limited to the named observation fields and executed targets.',
+        'No claim is made for unobserved behavior or unregistered hosts.',
+      ],
     },
     evidenceClaims: {
       configuredAndEnforced: 'Closed manifest, target, artifact, runtime-boundary, output-limit, and expiring handoff checks were enforced.',

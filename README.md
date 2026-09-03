@@ -2,28 +2,55 @@
 
 [![UNIV Deploy required gate](https://github.com/seemorecodez/univ-witness-webmcp/actions/workflows/univ-deploy-ci.yml/badge.svg)](https://github.com/seemorecodez/univ-witness-webmcp/actions/workflows/univ-deploy-ci.yml)
 
-UNIV Deploy is a manifest-driven universal deployment demonstration for WebMCP.
-A browser agent can plan one closed deployment, create a controlled handoff, run
-the same included WASI workload on two real runtimes, and compare their receipts.
+UNIV Deploy is a proof-carrying deployment demonstration for WebMCP. A browser
+agent compiles one closed deployment intent against machine-readable target
+passports, creates a controlled handoff from verified execution capsules, runs
+the same included WASI workload on two real runtimes, and compares their receipts
+over an explicit observation contract.
 
 The target user is a platform, release, or security team that wants agent-driven
 portability without granting arbitrary code execution.
 
+## Compile deployment, then prove what ran
+
+UNIV treats deployment as a translation between one target-neutral intent and
+machine-readable target passports. The compiler derives
+a finite portability frontier, emits a compatibility certificate and distinct
+execution capsule for each compatible target, then binds those capsules into the
+existing controlled handoff. Actual target receipts reduce to the intent's named
+observation fields and produce a bounded runtime portability witness.
+
+The v2 application physically implements that contract for the browser and OpenAI
+Sites edge paths. A separately implemented verifier recomputes the finite proof
+and capsule; it is not an outside attester. The negative network intent compiles
+to an empty frontier and no capsule. Fourteen focused tests cover pass, refusal,
+determinism, mutations, and comparison with a real v1 production receipt. See
+[the theory and novelty boundary](docs/UNIVERSAL_DEPLOYMENT_THEORY.md) and the
+[proof experiment](experiments/proof-carrying-deployment/README.md).
+
+The honest boundary: target passports are still closed, checked-in models; a
+third party has not yet implemented the passport/capsule protocol. The current
+claim is a finite portability frontier over registered passports followed by real
+execution—not “runs everywhere.”
+
 ## What the demonstration proves
 
-1. `portable-release-v1` models one workload and two explicit targets:
-   `browser-wasi` and `sites-edge-wasi`.
-2. A five-minute, digest-bound handoff fixes the manifest, component, core modules,
-   target set, and runtime constraints before execution.
-3. The browser target fetches the included modules, observes each SHA-256 digest,
+1. `portable-release-v1` expresses one target-neutral intent for one pinned
+   workload and two registered target passports.
+2. The compiler checks required features, requested and granted authorities, and
+   required observations before emitting a target-specific capsule.
+3. A five-minute, digest-bound handoff fixes the compiled program, verified
+   capsules, component, core modules, target set, and runtime constraints.
+4. The browser target fetches the included modules, observes each SHA-256 digest,
    and compiles only after all digests match.
-4. The OpenAI Sites edge target executes statically imported compiled-Wasm modules
+5. The OpenAI Sites edge target executes statically imported compiled-Wasm modules
    pinned by the repository manifest and CI gate.
-5. A portability receipt is issued only when both real executions complete with
-   the same manifest, component, and deterministic workload output.
+6. A runtime portability witness is issued only when both real executions complete
+   and agree over the intent's declared observation fields.
 
 `network-bound-release-v1` is a manifest-level negative control. Planning returns
-`BLOCK`, and no handoff can be created, because every public target disables guest
+`BLOCK`, emits `guest-network` as the counterexample, and creates no capsule or
+handoff because every public target disables guest
 networking.
 
 ## WebMCP surface
@@ -31,7 +58,7 @@ networking.
 The page registers five tools:
 
 - `get_univ_capabilities`
-- `plan_univ_deployment`
+- `compile_univ_deployment`
 - `create_deployment_handoff`
 - `deploy_univ_manifest`
 - `get_deployment_evidence`
@@ -56,7 +83,7 @@ activity timeline says `via WebMCP` only for an actual page-defined tool callbac
 
 In a WebMCP-capable browser, the agent flow is:
 
-1. Call `plan_univ_deployment` with `portable-release-v1`.
+1. Call `compile_univ_deployment` with `portable-release-v1`.
 2. Call `create_deployment_handoff` with the same manifest ID.
 3. Pass the returned `handoffId` and `handoffDigest` to `deploy_univ_manifest`.
 
@@ -69,9 +96,14 @@ No API key, account, credential, uploaded file, or external sample data is requi
 - Architecture and evidence boundary: [ARCHITECTURE.md](ARCHITECTURE.md)
 - Reproducible production evidence: [evidence/](evidence/README.md)
 
+The immutable `univ-deploy-v1.0.0` tag preserves the earlier manifest-driven
+baseline. Public `main` contains the proof-carrying v2 implementation.
+
 ## Validation
 
 ```bash
+npm run experiment:proof-carrying
+npm run demo:proof-carrying
 rustup target add wasm32-wasip2
 cargo test --manifest-path diagnostic/Cargo.toml
 npm run build:diagnostic
@@ -82,7 +114,8 @@ npm audit --omit=dev --audit-level=high
 npm audit --audit-level=high
 ```
 
-The public `UNIV Deploy required gate` tests the Rust workload, verifies the
+The public `UNIV Deploy required gate` tests the compiler's proofs and mutation
+matrix, tests the Rust workload, verifies the
 committed source-component digest, retranspiles it with pinned
 `@bytecodealliance/jco@1.17.9`, compares the resulting module set and SHA-256
 digests, lints, builds the deployable edge application, and audits dependencies.
@@ -93,7 +126,7 @@ systems; the committed component is the reproducibility input.
 
 | Category | Claim |
 |---|---|
-| Configured and enforced | Closed manifests and targets, pinned artifacts, no arbitrary inputs, disabled guest network, zero preopens/env, bounded output, expiring handoff |
+| Configured and enforced | Closed intents and passports, verified capsules, pinned artifacts, no arbitrary inputs, disabled guest network, zero preopens/env, bounded output, expiring handoff |
 | Actively observed | Both target terminations, their deterministic output hashes, and browser-loaded module hashes |
 | Build-pinned | CI verifies the edge's static compiled-module imports; the edge runtime does not expose module bytes for runtime re-hashing |
 | Component-reported | Included workload status and five deterministic release-inventory records |
@@ -111,9 +144,10 @@ Rust/Wasmtime work. Those inherited sources include daemon, worker, native, OCI,
 QEMU, and unrelated material with known cross-platform failures.
 
 This clean submission repository contains the new WebMCP surface, OpenAI Sites
-application, two-target WASI execution path, closed manifest and handoff contract,
-portability comparison, deterministic component, digest manifest, claim taxonomy,
-and submission-specific CI gate. Unrelated role-adaptive-agent files and inherited
+application, deployment-intent compiler, target passports, proof certificates,
+verified execution capsules, two-target WASI execution path, closed handoff,
+runtime portability witness, deterministic component, digest manifest, claim
+taxonomy, and submission-specific CI gate. Unrelated role-adaptive-agent files and inherited
 execution adapters are not included. The broad inherited failures are not
 represented as passing here.
 

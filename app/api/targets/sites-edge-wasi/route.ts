@@ -38,17 +38,20 @@ export async function POST(request: Request) {
   }
   try {
     const handoff = await validateDeploymentHandoff((body as { handoff: unknown }).handoff, 'sites-edge-wasi');
+    const capsule = handoff.executionCapsules.find((item) => item.targetId === 'sites-edge-wasi');
+    if (!capsule) throw new Error('Verified edge execution capsule missing.');
     const result = await serialized(() => executePortableWorkload(async (name) => {
       const compiled = compiledModules[name];
       if (!compiled) throw new Error(`Unlisted executable module refused: ${name}`);
       return compiled;
     }));
     const receipt: TargetReceipt = {
-      schemaVersion: 'univ.target-receipt/v1',
+      schemaVersion: 'univ.target-receipt/v2',
       targetId: 'sites-edge-wasi',
       environment: 'OpenAI Sites / Cloudflare Workers edge',
       execution: 'actual',
       handoffId: handoff.handoffId,
+      capsuleDigest: capsule.capsuleDigest,
       manifestId: 'portable-release-v1',
       componentId: COMPONENT_ID,
       configuredAndEnforced: {
