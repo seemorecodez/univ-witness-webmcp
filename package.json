@@ -15,7 +15,7 @@
     "lint": "oxlint app/page.tsx app/lib/deployment-compiler.ts app/lib/deployment-capsule-verifier.ts app/lib/deployment-contract.ts app/lib/deployment.ts app/lib/wasi-runtime.ts app/api/targets/sites-edge-wasi/route.ts app/types/webmcp.d.ts app/types/wasm.d.ts vite.config.ts",
     "format": "oxfmt",
     "verify": "node scripts/verify-deployment.mjs",
-    "experiment:proof-carrying": "node --test --test-isolation=none experiments/proof-carrying-deployment/*.test.mjs",
+    "experiment:proof-carrying": "node --test experiments/proof-carrying-deployment/*.test.mjs",
     "demo:proof-carrying": "node experiments/proof-carrying-deployment/demo.mjs"
   },
   "dependencies": {
