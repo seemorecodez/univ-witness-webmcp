@@ -13,7 +13,5 @@
 - [x] Public GitHub `UNIV Deploy required gate` completes green and is configured as the strict required branch check.
 - [x] Four refreshed viewport screenshots captured from the deployed URL in `evidence/screenshots/`.
 - [ ] Public YouTube demo under three minutes with audio.
-- [ ] Exact Codex/GPT-5.6 provenance confirmed from task metadata.
-- [ ] Real `/feedback` Session ID entered in Devpost.
 - [ ] Current Devpost fields and requirements rechecked immediately before submission.
 - [ ] Submission marked Submitted, not Draft.
