@@ -3,7 +3,7 @@
     "browser-wasi": "f4d38cde9e2facfb64fbab592420d47d6fc9064cabdcfec1dd97971911cb104b",
     "sites-edge-wasi": "776476c8ead18d7917e420adbbcae4e17a768162fd974866d6e0dc9443ed95db"
   },
-  "createdAt": "2026-09-03T17:21:58.365Z",
+  "createdAt": "2026-09-03T18:11:12.564Z",
   "enforcementGrade": "CLOSED_MANIFEST_PINNED_ARTIFACTS",
   "evidenceClaims": {
     "activelyObserved": "Both target executions terminated and returned the same bounded deterministic workload output.",
@@ -14,10 +14,10 @@
       "present": false
     }
   },
-  "evidenceDigest": "e206f01b8d5a05d56ea8f7d052eb0d634c1ab9794b95a7e463d2687fe50c181a",
-  "evidenceId": "b304eb6e-d9d7-4054-9342-f78e6f069beb",
-  "handoffDigest": "8782e0e40e47bf159f0c39c697833ecae896720b58ca4caf7e3a5d03e9124627",
-  "handoffId": "c766fe21-2d80-48ed-9e05-ed9962e12b01",
+  "evidenceDigest": "1763946768572098aea975f7ebeb3cda37896a1ac63fd63bb8c59334cbca87d6",
+  "evidenceId": "7cc5409e-d9d1-4cb4-b3a4-2bbbec6b15e4",
+  "handoffDigest": "c31174684cab8f066ef7df03c210cbf480d1147be32c79e85f0323e4e54bd89c",
+  "handoffId": "1922032c-b0a7-4bdc-9fb6-990d9049c9c1",
   "manifestDigest": "8a11ef7f52f0b55455a5bd167d647f64ca1fad8a10ad71aa4cfb115a776575dc",
   "manifestId": "portable-release-v1",
   "portability": {
@@ -115,9 +115,9 @@
       },
       "environment": "browser main thread + WebAssembly",
       "execution": "actual",
-      "handoffId": "c766fe21-2d80-48ed-9e05-ed9962e12b01",
+      "handoffId": "1922032c-b0a7-4bdc-9fb6-990d9049c9c1",
       "hostObserved": {
-        "durationMs": 2025.8,
+        "durationMs": 1205.7,
         "stdoutCapturedBytes": 389,
         "stdoutTruncated": false,
         "stdoutWrittenBytes": 389,
@@ -179,7 +179,7 @@
       },
       "environment": "OpenAI Sites / Cloudflare Workers edge",
       "execution": "actual",
-      "handoffId": "c766fe21-2d80-48ed-9e05-ed9962e12b01",
+      "handoffId": "1922032c-b0a7-4bdc-9fb6-990d9049c9c1",
       "hostObserved": {
         "durationMs": 0,
         "stdoutCapturedBytes": 389,

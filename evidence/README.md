@@ -8,8 +8,8 @@ Verified on 2026-09-03 against
 - Page loaded with title `UNIV Deploy — Proof-carrying WebMCP deployment`.
 - The browser discovered all five page-defined WebMCP tools at the public origin.
 - Browser console warnings/errors after the final deployment: none.
-- OpenAI Sites version 7 was built from implementation commit
-  `811a66cf6172df2cbd63b6d82476774728892d37` and deployed successfully.
+- OpenAI Sites version 8 was built from implementation commit
+  `28559512e58cc6daf0796dcf09037e427c6c59a5` and deployed successfully.
 
 ## Manifest policy proof
 
@@ -27,9 +27,9 @@ with the blocked intent, compile the permitted intent, create its handoff, deplo
 both capsules, and retrieve the evidence. The v2 receipt is stored verbatim in
 [production-webmcp-receipt-v2.json](production-webmcp-receipt-v2.json).
 
-- Evidence ID: `b304eb6e-d9d7-4054-9342-f78e6f069beb`
+- Evidence ID: `7cc5409e-d9d1-4cb4-b3a4-2bbbec6b15e4`
 - Evidence digest:
-  `e206f01b8d5a05d56ea8f7d052eb0d634c1ab9794b95a7e463d2687fe50c181a`
+  `1763946768572098aea975f7ebeb3cda37896a1ac63fd63bb8c59334cbca87d6`
 - Source: `WebMCP`
 - Actual targets: `browser-wasi`, `sites-edge-wasi`
 - Capsules: target-specific, independently verified, and digest-bound into the
@@ -53,7 +53,7 @@ attestation.
 ## Required submission CI
 
 - Implementation commit:
-  `811a66cf6172df2cbd63b6d82476774728892d37`
+  `28559512e58cc6daf0796dcf09037e427c6c59a5`
 - Public run: [UNIV Deploy required gate 33783787273](https://github.com/seemorecodez/univ-witness-webmcp/actions/runs/33783787273), succeeded
 - Branch protection: strict required context `UNIV Deploy required gate`
 - Force pushes and branch deletion: disabled
