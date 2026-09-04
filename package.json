@@ -1,6 +1,6 @@
 {
   "name": "univ-deploy-webmcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "license": "MIT",
   "engines": {
@@ -10,16 +10,20 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "build:diagnostic": "cargo build --manifest-path diagnostic/Cargo.toml --target wasm32-wasip2 --release",
-    "check": "npm run verify && npm run experiment:proof-carrying && npm run lint && npm run build",
+    "check": "npm run verify && npm run experiment:proof-carrying && npm run test:receipt && npm run lint && npm run build",
     "start": "wrangler dev --config dist/server/wrangler.json",
-    "lint": "oxlint app/page.tsx app/lib/deployment-compiler.ts app/lib/deployment-capsule-verifier.ts app/lib/deployment-contract.ts app/lib/deployment.ts app/lib/wasi-runtime.ts app/api/targets/sites-edge-wasi/route.ts app/types/webmcp.d.ts app/types/wasm.d.ts vite.config.ts",
+    "lint": "oxlint app/page.tsx app/lib/deployment-compiler.ts app/lib/deployment-capsule-verifier.ts app/lib/deployment-receipt-verifier.ts app/lib/deployment-receipt-verifier.test.ts app/lib/deployment-contract.ts app/lib/deployment.ts app/lib/wasi-runtime.ts app/api/evidence/route.ts app/api/evidence/[evidenceId]/route.ts app/api/targets/sites-edge-wasi/route.ts db/index.ts db/schema.ts db/env.d.ts app/types/webmcp.d.ts app/types/wasm.d.ts drizzle.config.ts vite.config.ts",
     "format": "oxfmt",
+    "db:generate": "drizzle-kit generate",
+    "db:local": "wrangler d1 execute DB --local --file=drizzle/0000_famous_hannibal_king.sql --config=dist/server/wrangler.json",
     "verify": "node scripts/verify-deployment.mjs",
     "experiment:proof-carrying": "node --test experiments/proof-carrying-deployment/*.test.mjs",
+    "test:receipt": "tsx --test app/lib/deployment-receipt-verifier.test.ts",
     "demo:proof-carrying": "node experiments/proof-carrying-deployment/demo.mjs"
   },
   "dependencies": {
     "@bytecodealliance/preview2-shim": "0.23.0",
+    "drizzle-orm": "0.45.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-server-dom-webpack": "19.2.8",
@@ -35,13 +39,21 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
     "@vitejs/plugin-rsc": "0.5.34",
+    "drizzle-kit": "0.31.10",
     "oxfmt": "0.61.0",
     "oxlint": "1.76.0",
     "oxlint-tsgolint": "7.0.2001",
     "tailwindcss": "4.2.1",
+    "tsx": "4.23.13",
     "typescript": "5.9.3",
     "vite": "8.2.2",
     "wrangler": "4.127.1"
   },
-  "type": "module"
+  "type": "module",
+  "allowScripts": {
+    "esbuild@0.18.20": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.1": true,
+    "workerd@1.20260828.1": true
+  }
 }

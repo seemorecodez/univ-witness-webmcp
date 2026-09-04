@@ -1,9 +1,10 @@
 # Architecture and evidence boundary
 
-UNIV Deploy v2 demonstrates a narrow proof-carrying deployment primitive: a closed
+UNIV Deploy v3 demonstrates a narrow proof-carrying release-gate primitive: a closed
 intent is compiled against registered target passports, verified target-specific
 capsules are handed off under fixed constraints, and actual executions on two
-different WASI hosts are compared over a declared observation contract. The
+different WASI hosts are compared over a declared observation contract. A
+deterministic edge verifier then gates durable D1 storage and retrieval. The
 immutable `univ-deploy-v1.0.0` tag preserves the earlier manifest-driven baseline.
 
 ```text
@@ -28,6 +29,15 @@ browser agent or human control
               ▼
  declared-observation equality
        + portability witness
+              │
+              ▼
+ deterministic edge verifier
+              │ verified receipt only
+              ▼
+ Cloudflare D1 durable evidence
+              │ exact evidence ID
+              ▼
+ share link + WebMCP retrieval
 ```
 
 The compiler does not claim target-independent execution by itself. It produces
@@ -42,7 +52,7 @@ The compiler accepts a target only when required features and observations are
 provided and all requested or granted authorities remain under the intent's
 authority ceiling.
 
-The separately implemented verifier recomputes the manifest digest,
+The separately implemented capsule verifier recomputes the manifest digest,
 target-passport digest, four set-relation clauses, certificate verdict, and
 execution capsule. It is an internal deterministic verifier, not an outside
 attester. A v2
@@ -123,6 +133,27 @@ The receipt records two actual targets. Merely modeling a target, compiling a
 certificate, or producing an execution capsule is never counted as runtime
 portability evidence.
 
+## Durable evidence and retrieval
+
+The browser creates a final receipt only after both actual target results agree.
+The receipt is sent to a same-origin edge route with a 64 KiB request ceiling. A
+separate verifier rejects extra top-level fields, unknown contract versions,
+invalid identifiers and digests, changed enforcement limits, target or capsule
+mismatches, incomplete observations, divergent component output, unsupported
+portability claims, and any attempt to imply independent attestation.
+
+Only a verified receipt is inserted into Cloudflare D1. Inserts are idempotent by
+evidence ID and refuse a digest collision. Retrieval requires an exact UUID,
+loads the bounded JSON record with a prepared statement, re-runs the verifier,
+and compares the stored digest before returning the receipt. The resulting proof
+link survives the creating browser session. Evidence contains no credentials or
+user-supplied component data and is intentionally public to anyone holding the
+exact ID for this demonstration.
+
+Durable storage is not authenticated approval. The release gate still lacks
+organization accounts, RBAC, a signed approver identity, retention controls, and
+an outside attester.
+
 ## Claim taxonomy
 
 - **Configured and enforced:** closed manifests/targets, pinned artifacts, handoff
@@ -131,6 +162,10 @@ portability evidence.
   and the browser's loaded-module hashes.
 - **Build-pinned:** the edge's static module inputs as checked by the public CI gate.
 - **Component-reported:** deterministic workload status and inventory records.
+- **Deterministically verified:** receipt integrity and cross-receipt invariants
+  checked on the Sites edge before storage and on retrieval.
+- **Durably stored:** bounded receipts stored in Cloudflare D1 and addressed by an
+  exact evidence ID.
 - **Independent attestation:** absent.
 
 ## Deliberately excluded

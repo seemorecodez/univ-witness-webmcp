@@ -45,6 +45,12 @@ jobs:
         run: node scripts/verify-deployment.mjs --generated-dir "$RUNNER_TEMP/univ-deploy-generated"
       - name: Test deployment compiler proofs and mutations
         run: npm run experiment:proof-carrying
+      - name: Test durable receipt verification and mutations
+        run: npm run test:receipt
+      - name: Verify durable-evidence migration is current
+        run: |
+          npm run db:generate
+          test -z "$(git status --short --untracked-files=all -- drizzle)"
       - name: Lint
         run: npm run lint
       - name: Build deployable site

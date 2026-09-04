@@ -2,11 +2,11 @@
 
 [![UNIV Deploy required gate](https://github.com/seemorecodez/univ-witness-webmcp/actions/workflows/univ-deploy-ci.yml/badge.svg)](https://github.com/seemorecodez/univ-witness-webmcp/actions/workflows/univ-deploy-ci.yml)
 
-UNIV Deploy is a proof-carrying deployment demonstration for WebMCP. A browser
-agent compiles one closed deployment intent against machine-readable target
+UNIV Deploy is a proof-carrying release portability gate for WebMCP. A browser
+agent compiles one closed release intent against machine-readable target
 passports, creates a controlled handoff from verified execution capsules, runs
-the same included WASI workload on two real runtimes, and compares their receipts
-over an explicit observation contract.
+the same included WASI workload on two real runtimes, and stores a re-verifiable
+receipt behind a durable proof link.
 
 The target user is a platform, release, or security team that wants agent-driven
 portability without granting arbitrary code execution.
@@ -20,10 +20,12 @@ execution capsule for each compatible target, then binds those capsules into the
 existing controlled handoff. Actual target receipts reduce to the intent's named
 observation fields and produce a bounded runtime portability witness.
 
-The v2 application physically implements that contract for the browser and OpenAI
-Sites edge paths. A separately implemented verifier recomputes the finite proof
+The v3 application physically implements that contract for the browser and OpenAI
+Sites edge paths. A separately implemented capsule verifier recomputes the finite proof
 and capsule; it is not an outside attester. The negative network intent compiles
-to an empty frontier and no capsule. Fourteen focused tests cover pass, refusal,
+to an empty frontier and no capsule. After execution, a second deterministic
+verifier runs on the Sites edge before Cloudflare D1 stores the bounded receipt;
+retrieval re-runs that verifier. Fourteen focused proof tests cover pass, refusal,
 determinism, mutations, and comparison with a real v1 production receipt. See
 [the theory and novelty boundary](docs/UNIVERSAL_DEPLOYMENT_THEORY.md) and the
 [proof experiment](experiments/proof-carrying-deployment/README.md).
@@ -47,6 +49,8 @@ execution—not “runs everywhere.”
    pinned by the repository manifest and CI gate.
 6. A runtime portability witness is issued only when both real executions complete
    and agree over the intent's declared observation fields.
+7. The Sites edge independently re-runs deterministic receipt checks before D1
+   storage and again whenever an exact evidence ID is retrieved.
 
 `network-bound-release-v1` is a manifest-level negative control. Planning returns
 `BLOCK`, emits `guest-network` as the counterexample, and creates no capsule or
@@ -63,7 +67,8 @@ The page registers five tools:
 - `deploy_univ_manifest`
 - `get_deployment_evidence`
 
-All inputs are closed schemas. The service accepts no uploaded component, arbitrary
+The read tools declare read-only annotations and every tool updates the same visible
+release-gate state as the human controls. All inputs are closed schemas. The service accepts no uploaded component, arbitrary
 bytes, path, URL, shell text, native executable, container image, host configuration,
 or free-form guest arguments. The inherited daemon, worker, native, OCI, upload,
 shell, and QEMU paths are not exposed.
@@ -75,17 +80,21 @@ the `wasm32-wasip2` target is needed only when rebuilding the included workload.
 
 ```bash
 npm ci
-npm run dev
+npm run build
+npm run db:local
+npm start
 ```
 
 Open `http://localhost:3000`. Human controls run the same implementation, but the
 activity timeline says `via WebMCP` only for an actual page-defined tool callback.
 
-In a WebMCP-capable browser, the agent flow is:
+In a WebMCP-capable browser, the complete judge flow is:
 
-1. Call `compile_univ_deployment` with `portable-release-v1`.
-2. Call `create_deployment_handoff` with the same manifest ID.
-3. Pass the returned `handoffId` and `handoffDigest` to `deploy_univ_manifest`.
+1. Compile `network-bound-release-v1` and observe the `guest-network` refusal.
+2. Compile `portable-release-v1`.
+3. Create its integrity-bound handoff.
+4. Pass the returned `handoffId` and `handoffDigest` to `deploy_univ_manifest`.
+5. Retrieve the resulting durable receipt with `get_deployment_evidence`.
 
 No API key, account, credential, uploaded file, or external sample data is required.
 
@@ -97,13 +106,15 @@ No API key, account, credential, uploaded file, or external sample data is requi
 - Reproducible production evidence: [evidence/](evidence/README.md)
 
 The immutable `univ-deploy-v1.0.0` tag preserves the earlier manifest-driven
-baseline. Public `main` contains the proof-carrying v2 implementation.
+baseline. The `univ-deploy-v2.0.2` tag preserves the session-local proof-carrying
+version. Public `main` contains the durable release-gate implementation.
 
 ## Validation
 
 ```bash
 npm run experiment:proof-carrying
 npm run demo:proof-carrying
+npm run db:generate
 rustup target add wasm32-wasip2
 cargo test --manifest-path diagnostic/Cargo.toml
 npm run build:diagnostic
@@ -124,13 +135,15 @@ systems; the committed component is the reproducibility input.
 
 ## Evidence language
 
-| Category | Claim |
-|---|---|
-| Configured and enforced | Closed intents and passports, verified capsules, pinned artifacts, no arbitrary inputs, disabled guest network, zero preopens/env, bounded output, expiring handoff |
-| Actively observed | Both target terminations, their deterministic output hashes, and browser-loaded module hashes |
-| Build-pinned | CI verifies the edge's static compiled-module imports; the edge runtime does not expose module bytes for runtime re-hashing |
-| Component-reported | Included workload status and five deterministic release-inventory records |
-| Independent attestation | **Absent** — no outside signer, TEE, hardware root, or third party attests this deployment |
+| Category                   | Claim                                                                                                                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Configured and enforced    | Closed intents and passports, verified capsules, pinned artifacts, no arbitrary inputs, disabled guest network, zero preopens/env, bounded output, expiring handoff            |
+| Actively observed          | Both target terminations, their deterministic output hashes, and browser-loaded module hashes                                                                                  |
+| Build-pinned               | CI verifies the edge's static compiled-module imports; the edge runtime does not expose module bytes for runtime re-hashing                                                    |
+| Component-reported         | Included workload status and five deterministic release-inventory records                                                                                                      |
+| Deterministically verified | The Sites edge checks receipt integrity, manifest and capsule bindings, bounded observations, output equality, and honest attestation language before storage and on retrieval |
+| Durably stored             | A bounded, public-by-exact-ID receipt is stored in Cloudflare D1 after verification                                                                                            |
+| Independent attestation    | **Absent** — no outside signer, TEE, hardware root, or third party attests this deployment                                                                                     |
 
 The handoff is integrity-bound, not identity-authenticated or cryptographically
 signed. The Bytecode Alliance preview2 browser shim is experimental. This is a
@@ -146,7 +159,8 @@ QEMU, and unrelated material with known cross-platform failures.
 This clean submission repository contains the new WebMCP surface, OpenAI Sites
 application, deployment-intent compiler, target passports, proof certificates,
 verified execution capsules, two-target WASI execution path, closed handoff,
-runtime portability witness, deterministic component, digest manifest, claim
+runtime portability witness, deterministic edge receipt verifier, durable D1
+evidence retrieval, deterministic component, digest manifest, claim
 taxonomy, and submission-specific CI gate. Unrelated role-adaptive-agent files and inherited
 execution adapters are not included. The broad inherited failures are not
 represented as passing here.
